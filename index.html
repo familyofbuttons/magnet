@@ -3,12 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Magnetic Mayhem — Widescreen Optimized</title>
-
-<!-- PWA manifest and icons -->
-<link rel="manifest" href="/magnet/manifest.json">
-<meta name="theme-color" content="#ffb347">
-<link rel="icon" href="/magnet/pwa-icons/icon-192.png">
+<title>Magnetic Mayhem — Ratings & Profiles Fix</title>
 
 <style>
   *{box-sizing:border-box}
@@ -22,85 +17,47 @@
     --wizard-text: #111;
   }
 
-  html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;background:var(--bg-dark);color:var(--muted);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;display:flex;align-items:center;justify-content:center;padding:18px;overflow:auto}
-  .container{width:100%;max-width:1800px;display:flex;flex-direction:column;gap:12px;height:calc(100vh - 36px);overflow:auto;margin:0 auto;padding:18px}
-
+  html,body{height:100%;margin:0;padding:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:var(--bg-dark);color:var(--muted);overflow:hidden}
+  .container{width:100%;max-width:1800px;margin:0 auto;padding:18px;height:100vh;display:flex;flex-direction:column;gap:12px;overflow:auto}
   .header{display:flex;justify-content:space-between;align-items:center;padding:12px;border-radius:12px;background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));box-shadow:0 8px 30px rgba(0,0,0,0.6);position:sticky;top:0;z-index:40}
   .title{font-weight:800;color:#fff}
   .subtitle{font-size:0.95rem;color:var(--muted)}
   .controls-inline{display:flex;gap:12px;align-items:center}
-
-  .top-bank{padding:12px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00));border:1px solid rgba(255,255,255,0.03)}
-  .bank-header{display:flex;justify-content:space-between;align-items:center}
-  .bank-controls{display:flex;gap:8px;align-items:center}
   .btn{padding:8px 12px;border-radius:999px;background:var(--glass);border:1px solid rgba(255,255,255,0.04);color:var(--muted);cursor:pointer}
   .btn-primary{padding:10px 14px;border-radius:999px;background:linear-gradient(90deg,var(--accent),#ff7b00);border:none;color:#2b1300;font-weight:700;cursor:pointer}
-
+  .top-bank{padding:12px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00));border:1px solid rgba(255,255,255,0.03)}
   .word-bank{position:relative;height:320px;border-radius:10px;margin-top:8px;overflow:auto;border:1px solid rgba(255,255,255,0.02);background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.00));padding:8px}
-  .word-bank.drag-over{outline:3px dashed rgba(255,179,71,0.12);box-shadow:inset 0 6px 20px rgba(0,0,0,0.4)}
-
-  .word-magnet{position:absolute;padding:10px 14px;background:#fff;color:#111;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,0.45);font-weight:800;cursor:grab;touch-action:none;user-select:none;white-space:nowrap;display:flex;align-items:center;gap:8px;font-size:1rem}
-  .word-magnet.dragging{transform:scale(1.03);box-shadow:0 22px 48px rgba(0,0,0,0.6)}
-
-  .modal-magnet{display:inline-flex;align-items:center;justify-content:center;padding:6px 10px;margin:4px;border-radius:10px;background:#fff;color:#111;font-weight:800;border:1px solid rgba(0,0,0,0.06);box-shadow:0 8px 20px rgba(0,0,0,0.25);font-size:0.9rem;white-space:nowrap;transform-origin:center;transition:transform 140ms}
-  .modal-magnet:hover{transform:translateY(-6px) scale(1.03)}
-
-  .play-area{min-height:720px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00));border:1px solid rgba(255,255,255,0.03);position:relative;overflow:hidden;padding:12px}
+  .word-magnet{position:absolute;padding:10px 14px;background:#fff;color:#111;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,0.45);font-weight:800;cursor:grab;touch-action:none;user-select:none;white-space:nowrap;display:flex;align-items:center;gap:8px;font-size:1rem;transition:transform 160ms}
+  .word-magnet.jaunty{transform-origin:center;transition:transform 220ms cubic-bezier(.2,.9,.2,1)}
+  .play-area{min-height:520px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00));border:1px solid rgba(255,255,255,0.03);position:relative;overflow:hidden;padding:12px}
   .play-hint{position:absolute;left:16px;top:12px;color:var(--muted);font-size:0.95rem;z-index:2}
-
   .player-marker{position:absolute;width:92px;height:92px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;color:#111;border:3px solid rgba(255,255,255,0.9);box-shadow:0 12px 36px rgba(0,0,0,0.6);user-select:none;touch-action:none;overflow:hidden;font-size:0.95rem}
-  .marker-p1{background:var(--p1)} .marker-p2{background:var(--p2)} .marker-p3{background:var(--p3)} .marker-p4{background:var(--p4)}
+  .marker-p1{background:var(--p1)}.marker-p2{background:var(--p2)}.marker-p3{background:var(--p3)}.marker-p4{background:var(--p4)}
   .marker-img{width:100%;height:100%;object-fit:cover;display:block}
-
-  .controls-row{display:flex;gap:8px;align-items:center;margin-top:8px}
   .timer-display{font-weight:800;color:var(--muted);padding:6px 10px;border-radius:8px;background:rgba(255,255,255,0.02)}
   .timer-wrap{width:320px;height:14px;background:rgba(255,255,255,0.06);border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,0.04)}
   .timer-bar{height:100%;background:linear-gradient(90deg,var(--accent),#ff7b00);width:0%;transition:width 0.2s linear}
   .message{color:var(--muted);font-size:0.95rem}
-
-  .wizard-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg, rgba(0,0,0,0.45), rgba(0,0,0,0.6));z-index:9999}
-  .wizard-card{width:92%;max-width:980px;border-radius:14px;padding:20px;background:var(--wizard-bg);color:var(--wizard-text);box-shadow:0 20px 60px rgba(0,0,0,0.7)}
+  .inline-wizard{width:100%;max-width:980px;border-radius:12px;padding:16px;background:var(--wizard-bg);color:var(--wizard-text);box-shadow:0 20px 60px rgba(0,0,0,0.5);margin:12px auto}
   .jounty-row{display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap;margin-top:16px}
-  .jounty-tile{min-width:120px;padding:18px 20px;border-radius:14px;background:linear-gradient(180deg,#fff,#f3f3f3);color:#111;font-weight:900;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,0.25);transform-origin:center;transition:transform 220ms cubic-bezier(.2,.9,.2,1), box-shadow 220ms}
-  .jounty-tile:hover{transform:translateY(-8px) rotate(-2deg) scale(1.04);box-shadow:0 26px 60px rgba(0,0,0,0.45)}
-  .jounty-tile.selected{background:linear-gradient(90deg,var(--accent),#ff7b00);color:#2b1300;box-shadow:0 26px 60px rgba(255,123,0,0.18)}
-
+  .jounty-tile{min-width:120px;padding:18px 20px;border-radius:14px;background:linear-gradient(180deg,#fff,#f3f3f3);color:#111;font-weight:900;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,0.25)}
+  .jounty-tile.selected{background:linear-gradient(90deg,var(--accent),#ff7b00);color:#2b1300}
   .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:10010}
   .modal-card{width:92%;max-width:760px;border-radius:14px;padding:18px;background:linear-gradient(180deg,#fff,#f7f7f7);box-shadow:0 30px 80px rgba(0,0,0,0.6);color:#111}
-
-  .rating-grid{display:flex;flex-direction:column;gap:12px;margin-top:12px}
-  .rating-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
-  .pill{display:inline-flex;align-items:center;justify-content:center;padding:8px 14px;border-radius:999px;background:rgba(0,0,0,0.04);color:#333;border:1px solid rgba(0,0,0,0.06);cursor:pointer;transition:transform 120ms}
-  .pill:hover{transform:translateY(-3px)}
-  .pill.selected{background:linear-gradient(90deg,var(--accent),#ff7b00);color:#2b1300;border:none;box-shadow:0 12px 30px rgba(255,123,0,0.12)}
-  .winner-badge{display:inline-block;padding:10px 14px;border-radius:999px;background:linear-gradient(90deg,#ffd93b,#ffb347);color:#2b1300;font-weight:900;margin-left:8px}
-
+  .modal-magnet{display:inline-flex;align-items:center;justify-content:center;padding:6px 10px;margin:4px;border-radius:10px;background:#fff;color:#111;font-weight:800;border:1px solid rgba(0,0,0,0.06);box-shadow:0 8px 20px rgba(0,0,0,0.25);font-size:0.9rem}
+  .pill{display:inline-flex;align-items:center;justify-content:center;padding:8px 14px;border-radius:999px;background:rgba(0,0,0,0.04);color:#333;border:1px solid rgba(0,0,0,0.06);cursor:pointer}
+  .pill.selected{background:linear-gradient(90deg,var(--accent),#ff7b00);color:#2b1300;border:none}
   .scoreboard{display:flex;gap:12px;align-items:center}
-  .score-pill{padding:8px 12px;border-radius:999px;background:rgba(255,255,255,0.03);color:var(--muted);font-weight:700;border:1px solid rgba(255,255,255,0.04)}
-
-  @media (min-width:1400px){
-    .container{max-width:2000px;padding:28px}
-    .word-bank{height:380px}
-    .play-area{min-height:820px;padding:18px}
-    .word-magnet{font-size:1.05rem;padding:12px 16px;border-radius:12px}
-    .player-marker{width:110px;height:110px;font-size:1.05rem}
-    .timer-wrap{width:420px;height:16px}
-    .jounty-tile{min-width:140px;padding:20px 22px}
-    .modal-card{max-width:1100px}
-    .modal-magnet{font-size:1rem;padding:8px 12px}
-  }
-
-  @media (max-width:900px){
-    .word-bank{height:180px}
-    .play-area{min-height:420px}
-    .player-marker{width:72px;height:72px}
-    .timer-wrap{width:200px}
-    .jounty-tile{min-width:86px;padding:12px}
-  }
+  .score-pill{padding:8px 12px;border-radius:999px;background:rgba(255,255,255,0.03);color:var(--muted);font-weight:700;border:1px solid rgba(255,255,255,0.04);cursor:pointer}
+  input[type="file"]{display:inline-block}
+  .profile-row{display:flex;gap:12px;align-items:center;margin-top:8px}
+  .confirm{color:#0a8a0a;font-weight:700;margin-left:8px}
+  @media (max-width:900px){.word-bank{height:180px}.play-area{min-height:420px}.player-marker{width:72px;height:72px}.timer-wrap{width:200px}}
 </style>
 </head>
 <body>
 <div class="container" id="app">
+
   <div class="header">
     <div>
       <div class="title">Magnetic Mayhem</div>
@@ -111,8 +68,12 @@
       <div class="scoreboard" id="scoreboard"></div>
       <div style="width:12px"></div>
       <div class="small" id="themeLabel">Theme: Dark</div>
+      <div style="width:12px"></div>
+      <button id="openNewGame" class="btn-primary" title="New Game">New Game</button>
     </div>
   </div>
+
+  <div id="inlineWizard" class="inline-wizard" style="display:none"></div>
 
   <div class="top-bank">
     <div class="bank-header">
@@ -123,71 +84,38 @@
         <div style="width:8px"></div>
         <div class="timer-display" id="timerDisplay">Ready</div>
         <div style="width:12px"></div>
-        <div class="timer-wrap" title="Time left"><div id="timerBar" class="timer-bar" style="width:0%"></div></div>
+        <div class="timer-wrap" title="Time left">
+          <div id="timerBar" class="timer-bar" style="width:0%"></div>
+        </div>
       </div>
     </div>
 
     <div id="wordBank" class="word-bank" aria-label="Word magnets area"></div>
+
     <div class="controls-row">
-      <div class="message" id="message">Open "New Game" to configure players, rounds and theme.</div>
+      <div class="message" id="message">Press New Game to configure players, rounds and theme.</div>
     </div>
   </div>
 
   <div id="playArea" class="play-area" aria-label="Play area">
     <div class="play-hint">Shared play area — park your marker, then drag words near it.</div>
   </div>
+
 </div>
-
-<!-- Wizard -->
-<div id="wizard" class="wizard-overlay" style="display:flex">
-  <div class="wizard-card" id="wizardCard"></div>
-</div>
-
-<!-- Ratings modal root -->
-<div id="ratingsModalRoot"></div>
-<!-- Service worker registration and optional install prompt handling -->
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/magnet/service-worker.js').then(reg => {
-        console.log('SW registered', reg.scope);
-      }).catch(err => {
-        console.warn('SW registration failed', err);
-      });
-    });
-  }
-
-  let deferredPrompt;
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    // You can show an install button and call promptInstall() when clicked
-  });
-  function promptInstall(){
-    if(!deferredPrompt) return;
-    deferredPrompt.prompt();
-    deferredPrompt.userChoice.then(()=>{ deferredPrompt = null; });
-  }
-</script>
-
 <script>
 (function(){
+
   const PROFILE_KEY = 'mm_profiles_jounty';
   const SCORE_KEY = 'mm_scores_jounty';
   const POOL_SIZE = 10000;
   const ROUND_WORD_COUNT = 200;
   const VISIBLE_MAGNETS = 300;
-  const COMMON_WORDS = [
-    'to','and','is','if','of','because','was',"wasn't","isn't","hasn't",
-    'at','through','though','in','on','it','all','the','a','an','this','that',
-    'her','him','she','he','they','them','we','you','I','it','was','were','be',
-    'because','though','through','but','or','so','then','when','where','how',
-    '.',',','?','!'
-  ];
+
+  const COMMON_WORDS = ['and','it','was','s','a','an','the','to','of','in','on','at','by','with','her','him','she','he','they','them','we','you','I','this','that','is','are','be','been','has','have','georgie','leslie','beverley','allen','house','home','family'];
+
   const DEFAULT_PLAYER_NAMES = ['Player 1','Player 2','Player 3','Player 4'];
 
-  const wizard = document.getElementById('wizard');
-  const wizardCard = document.getElementById('wizardCard');
+  const inlineWizard = document.getElementById('inlineWizard');
   const wordBank = document.getElementById('wordBank');
   const playArea = document.getElementById('playArea');
   const reshuffleBtn = document.getElementById('reshuffle');
@@ -197,25 +125,26 @@
   const startGameWrap = document.getElementById('startGameWrap');
   const scoreboardEl = document.getElementById('scoreboard');
   const themeLabel = document.getElementById('themeLabel');
-  const ratingsModalRoot = document.getElementById('ratingsModalRoot');
-
+  const openNewGameBtn = document.getElementById('openNewGame');
   let BIG_POOL = null;
   let magnets = [];
   let markers = [];
   let magnetId = 1;
+
   let chosenPlayers = 3;
   let chosenTime = 60;
   let chosenRounds = 2;
   let chosenTheme = 'dark';
+
   let uploadedImages = [null,null,null,null];
   let playerNames = DEFAULT_PLAYER_NAMES.slice();
+
   let roundActive = false;
   let timer = null;
   let timeLeft = 60;
   let currentRound = 0;
   let totalRounds = 2;
   let scores = [0,0,0,0];
-  let ratings = [];
 
   function $(s,ctx=document){return ctx.querySelector(s)}
   function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
@@ -226,290 +155,212 @@
 
   function loadProfiles(){ try{ const raw = localStorage.getItem(PROFILE_KEY); return raw ? JSON.parse(raw) : []; }catch(e){ return []; } }
   function saveProfiles(list){ try{ localStorage.setItem(PROFILE_KEY, JSON.stringify(list)); }catch(e){} }
-  function addOrUpdateProfile(profile){ const list = loadProfiles(); const idx = list.findIndex(p=>p.id===profile.id); if(idx>=0) list[idx]=profile; else list.push(profile); saveProfiles(list); }
   function deleteProfile(id){ const list = loadProfiles().filter(p=>p.id!==id); saveProfiles(list); }
+
   function loadScores(){ try{ const raw = localStorage.getItem(SCORE_KEY); return raw ? JSON.parse(raw) : [0,0,0,0]; }catch(e){ return [0,0,0,0]; } }
   function saveScores(arr){ try{ localStorage.setItem(SCORE_KEY, JSON.stringify(arr)); }catch(e){} }
 
-  const SENSIBLE_PHRASES = [
-    "chicken nugget","starbucks coffee","french toast","cheese grater","coffee shop","train station",
-    "post office","phone charger","garden gate","garden shed","movie theater","bus stop","school bus",
-    "apple pie","banana bread","chocolate cake","ice cream","paper towel","toilet paper","dinner table",
-    "kitchen sink","front door","back yard","living room","bed room","breakfast cereal","lunch box",
-    "dinner plate","safety pin","first aid","credit card","bank account","movie night","game night",
-    "shopping list","grocery store","coffee mug","water bottle","phone case","car keys","house key",
-    "train ticket","flight ticket","hotel room","office chair","desk lamp","reading lamp","study desk"
-  ];
-
-  const SEED = [
-    "allen","gray","beverley","leslie","christine","alex","sam","taylor","jordan","riley",
-    "I","you","he","she","they","we","it","someone","everyone","nobody",
-    "a","an","the","this","that","these","those","my","your","our","their",
-    "is","are","was","were","has","have","had","does","do","did","its","it's","isn't","hasn't","needs","need",
-    "and","or","but","if","because","while","when","then","so",
-    "cat","dog","dragon","robot","teacher","wizard","pirate","ghost","monster",
-    "sandwich","pizza","tea","coffee","cake","sofa","toaster","fridge","banana",
-    "run","jump","dance","sing","whisper","shout","laugh","cry","sleep","eat",
-    "tiny","huge","sparkly","grumpy","sleepy","noisy","silent","awkward","brilliant","ridiculous",
-    "on","under","over","inside","outside","behind","next","between","around","before",
-    "pancake","marshmallow","llama","unicorn","spaceship","cupboard","sock","spoon","noodle","pudding",
-    "glitter","chaos","nonsense","mischief","giggle","hiccup","sneeze","burp","rumble","whirlwind",
-    "legendary","impossible","unexpected","epic","wonky","secret","plan","accident","story","memory",
-    "shit","tits","bollocks","crap","slag","slut","bitch","minge","STD","hygiene","smell","poo","emoji","arse","bugger","snog","fart","splash","yuck"
-  ];
-
-  const ING_WORDS = [
-    "running","jumping","dancing","singing","whispering","shouting","laughing","crying","sleeping","eating",
-    "building","breaking","spinning","floating","glowing","searching","finding","carrying","holding","pushing",
-    "pulling","smiling","frowning","cooking","baking","driving","walking","skipping","painting","drawing",
-    "typing","scrolling","listening","talking","breathing","splashing","sneezing",
-    "ing","ed","er","end"
-  ];
-
-  const PUNCTUATION = ['.', ',', '?', '!'];
+  const SEED = ['allen','beverley','leslie','georgie','I','you','he','she','they','we','it','a','the','is','are','run','jump','dance','pizza','coffee','home','house','family','chaos','nonsense','mischief','garden','door','window','lamp','book','star','river','mountain','island','train','ticket','hotel','room'];
 
   function buildBigPool(){
     if(BIG_POOL) return BIG_POOL;
-    const adjectives = ["bright","dull","fuzzy","slick","ancient","modern","weird","sudden","quiet","loud","mellow","spicy","bitter","sweet","mystic","rusty","neon","frozen","gentle","brave","calm","wild","sly","bold","soft","sharp","warm","cold","golden","silver"];
-    const nouns = ["box","chair","river","mountain","lamp","shoe","hat","phone","keyboard","monitor","bottle","window","door","road","cloud","island","bridge","garden","stone","leaf","star","ship","tower","bench","book","street","market","forest","field","ocean"];
-    const verbs = ["run","jump","dance","sing","whisper","shout","laugh","cry","sleep","eat","build","break","spin","float","glow","search","find","carry","hold","push","pull"];
     const pool = SEED.slice();
-
-    for(let w of ING_WORDS) pool.push(w);
-    for(let p of PUNCTUATION) pool.push(p);
-
-    for(let i=0;i<5000;i++){
-      const pick = (i % 3 === 0) ? adjectives[i % adjectives.length] : (i % 3 === 1 ? nouns[i % nouns.length] : verbs[i % verbs.length]);
-      pool.push(pick);
-    }
-
-    for(let p of SENSIBLE_PHRASES) pool.push(p);
-
-    const EXTRA = [
-      "more","and","and","and","and","it","is","was","her","she","him","he","they","them","that","this","in","at","of","coz","per","else","than","if","but",
-      "because","all","it's","wasn't","isn't","hasn't","to","through","though"
+    const adjectives = ["bright","fuzzy","ancient","modern","weird","quiet","loud","mellow","spicy","sweet","mystic","rusty","neon","frozen","gentle","brave"];
+    const nouns = [
+      "box","chair","river","mountain","lamp","shoe","hat","phone","keyboard","monitor",
+      "bottle","window","door","road","cloud","island","bridge","garden","stone","leaf",
+      "star","ship","tower","bench","book","street","market","forest","field","ocean"
     ];
-    for(let e of EXTRA) pool.push(e);
 
-    let i = 0;
-    while(pool.length < POOL_SIZE){
-      const pick = (i % 2 === 0) ? nouns[i % nouns.length] : adjectives[i % adjectives.length];
-      pool.push(pick);
-      i++;
-      if(i > 50000) break;
+    const verbs = [
+      "run","jump","dance","sing","whisper","shout","laugh","cry","sleep","eat",
+      "build","break","spin","float","glow","search","find","carry","hold","push","pull"
+    ];
+
+    // Expand pool with combinations
+    for (let i = 0; i < 3000; i++) {
+      pool.push(adjectives[i % adjectives.length]);
+      pool.push(nouns[i % nouns.length]);
+      pool.push(verbs[i % verbs.length]);
     }
 
-    const uniq = Array.from(new Set(pool)).slice(0, POOL_SIZE);
-    shuffle(uniq);
-    BIG_POOL = uniq;
+    // Add common words again for weighting
+    for (let p of COMMON_WORDS) {
+      pool.push(p);
+    }
+
+    shuffle(pool);
+
+    // Deduplicate and trim to POOL_SIZE
+    BIG_POOL = Array.from(new Set(pool)).slice(0, POOL_SIZE);
     return BIG_POOL;
   }
+
   function applyTheme(name){
     chosenTheme = name;
-    themeLabel.textContent = 'Theme: ' + ({dark:'Dark',pastel:'Pastel',sunny:'Sunny',classic:'Fridge',xmas:'Christmas',light:'Light',random:'Random'}[name] || name);
-    if(name==='pastel'){ document.body.style.background = 'linear-gradient(180deg,#fff7fb 0%, #fffaf6 60%)'; document.documentElement.style.setProperty('--muted','#6b5b6b'); document.documentElement.style.setProperty('--accent','#ff9ec3'); }
-    else if(name==='sunny'){ document.body.style.background = 'linear-gradient(180deg,#fffaf0 0%, #fff6e0 60%)'; document.documentElement.style.setProperty('--muted','#6b5b2b'); document.documentElement.style.setProperty('--accent','#ffd166'); }
-    else if(name==='classic'){ document.body.style.background = 'linear-gradient(180deg,#f6f6f6 0%, #efefef 60%)'; document.documentElement.style.setProperty('--muted','#333'); document.documentElement.style.setProperty('--accent','#8ab4ff'); }
-    else if(name==='xmas'){ document.body.style.background = 'linear-gradient(180deg,#07220f 0%, #07220f 60%)'; document.documentElement.style.setProperty('--muted','#cfe8d8'); document.documentElement.style.setProperty('--accent','#ff4b4b'); }
-    else if(name==='light'){ document.body.style.background = 'linear-gradient(180deg,#f6f9fc 0%, #eef6ff 60%)'; document.documentElement.style.setProperty('--muted','#4b6b8b'); document.documentElement.style.setProperty('--accent','#7fb3ff'); }
-    else { document.body.style.background = 'linear-gradient(180deg,#0a0c0f 0%, #06070a 60%)'; document.documentElement.style.setProperty('--muted','#bfc4d6'); document.documentElement.style.setProperty('--accent','#ffb347'); }
+    themeLabel.textContent = 'Theme: ' + ({dark:'Dark',pastel:'Pastel',sunny:'Sunny',classic:'Fridge',xmas:'Christmas',light:'Light'}[name]||name);
+    if(name==='pastel'){ document.body.style.background='linear-gradient(180deg,#fff7fb 0%, #fffaf6 60%)'; document.documentElement.style.setProperty('--muted','#6b5b6b'); document.documentElement.style.setProperty('--accent','#ff9ec3'); }
+    else if(name==='xmas'){ document.body.style.background='linear-gradient(180deg,#07220f 0%, #07220f 60%)'; document.documentElement.style.setProperty('--muted','#cfe8d8'); document.documentElement.style.setProperty('--accent','#ff4b4b'); }
+    else { document.body.style.background='linear-gradient(180deg,#0a0c0f 0%, #06070a 60%)'; document.documentElement.style.setProperty('--muted','#bfc4d6'); document.documentElement.style.setProperty('--accent','#ffb347'); }
   }
 
-  let wizardStep = 0;
-  function openWizard(){ wizard.style.display='flex'; wizardStep=0; uploadedImages=[null,null,null,null]; renderWizard(); }
-  function closeWizard(){ try{ const w = document.getElementById('wizard'); if(w){ w.style.display='none'; w.style.pointerEvents='none'; const card = document.getElementById('wizardCard'); if(card) card.innerHTML=''; } }catch(e){ console.warn('closeWizard error', e); } }
+  function renderInlineWizard(){
+    inlineWizard.innerHTML = '';
+    const wrapper = document.createElement('div'); wrapper.style.textAlign='center';
 
-  function renderWizard(){
-    wizardCard.innerHTML = '';
-    if(wizardStep === 0){
-      wizardCard.innerHTML = `<div style="text-align:center"><div style="font-size:1.6rem;font-weight:900;color:#111">Magnetic Mayhem</div><div class="small" style="color:#444;margin-top:6px">Choose players, rounds, time and theme — then begin.</div><div class="jounty-row" style="margin-top:18px"><div id="startNew" class="jounty-tile">New Game</div></div></div>`;
-      $('#startNew', wizardCard).addEventListener('click', ()=>{ wizardStep=1; renderWizard(); });
-      return;
-    }
-    if(wizardStep === 1){
-      wizardCard.innerHTML = `<div style="text-align:center"><div style="font-size:1.2rem;font-weight:800;color:#111">Players</div><div class="small" style="color:#333;margin-top:6px">Select how many players will play</div><div class="jounty-row" id="playerRow"></div><div style="margin-top:12px"><div id="toTime" class="jounty-tile">Next</div></div></div>`;
-      const row = $('#playerRow', wizardCard);
-      [1,2,3,4].forEach(n=>{
-        const el = document.createElement('div'); el.className='jounty-tile'; el.textContent = n + (n>1 ? ' Players' : ' Player'); el.dataset.val = n;
-        if(n === chosenPlayers) el.classList.add('selected');
-        el.addEventListener('click', ()=>{ chosenPlayers = n; Array.from(row.children).forEach(c=>c.classList.remove('selected')); el.classList.add('selected'); });
-        row.appendChild(el);
-      });
-      $('#toTime', wizardCard).addEventListener('click', ()=>{ wizardStep=2; renderWizard(); });
-      return;
-    }
-    if(wizardStep === 2){
-      wizardCard.innerHTML = `<div style="text-align:center"><div style="font-size:1.2rem;font-weight:800;color:#111">Rounds & Time</div><div class="small" style="color:#333;margin-top:6px">Choose number of rounds and round length</div><div style="display:flex;gap:18px;justify-content:center;margin-top:12px"><div><div style="font-weight:800;color:#111;margin-bottom:8px">Rounds</div><div class="jounty-row" id="roundRow"></div></div><div><div style="font-weight:800;color:#111;margin-bottom:8px">Time</div><div class="jounty-row" id="timeRow"></div></div></div><div class="wizard-actions" style="margin-top:14px"><div id="toTheme" class="jounty-tile">Next</div><div id="backToPlayers" class="jounty-tile">Back</div></div></div>`;
-      const roundRow = $('#roundRow', wizardCard);
-      [2,4,5,10].forEach(r=>{
-        const el = document.createElement('div'); el.className='jounty-tile'; el.textContent = r + ' Rounds'; el.dataset.val = r;
-        if(r === chosenRounds) el.classList.add('selected');
-        el.addEventListener('click', ()=>{ chosenRounds = r; Array.from(roundRow.children).forEach(c=>c.classList.remove('selected')); el.classList.add('selected'); });
-        roundRow.appendChild(el);
-      });
-      const timeRow = $('#timeRow', wizardCard);
-      [60,90,120].forEach(t=>{
-        const el = document.createElement('div'); el.className='jounty-tile'; el.textContent = t + 's'; el.dataset.val = t;
-        if(t === chosenTime) el.classList.add('selected');
-        el.addEventListener('click', ()=>{ chosenTime = t; Array.from(timeRow.children).forEach(c=>c.classList.remove('selected')); el.classList.add('selected'); });
-        timeRow.appendChild(el);
-      });
-      $('#toTheme', wizardCard).addEventListener('click', ()=>{ wizardStep=3; renderWizard(); });
-      $('#backToPlayers', wizardCard).addEventListener('click', ()=>{ wizardStep=1; renderWizard(); });
-      return;
-    }
-    if(wizardStep === 3){
-      wizardCard.innerHTML = `<div style="text-align:center"><div style="font-size:1.2rem;font-weight:800;color:#111">Theme & Profiles</div><div class="small" style="color:#333;margin-top:6px">Pick a theme and optionally upload player images</div><div class="jounty-row" id="themeRow" style="margin-top:12px"></div><div id="playerSlots" style="margin-top:12px"></div><div style="margin-top:12px"><div id="finishSetup" class="jounty-tile">Finish Setup</div> <div id="backToRounds" class="jounty-tile" style="margin-left:8px">Back</div></div></div>`;
-      const themeRow = $('#themeRow', wizardCard);
-      const themes = [{id:'dark',label:'Dark'},{id:'pastel',label:'Pastel'},{id:'sunny',label:'Sunny'},{id:'classic',label:'Fridge'},{id:'xmas',label:'Christmas'},{id:'light',label:'Light'},{id:'random',label:'Random'}];
-      themes.forEach(t=>{
-        const el = document.createElement('div'); el.className='jounty-tile'; el.textContent = t.label; el.dataset.val = t.id;
-        if(t.id === chosenTheme) el.classList.add('selected');
-        el.addEventListener('click', ()=>{ chosenTheme = t.id; Array.from(themeRow.children).forEach(c=>c.classList.remove('selected')); el.classList.add('selected'); applyTheme(t.id); });
-        themeRow.appendChild(el);
-      });
+    const title = document.createElement('div'); title.style.fontSize='1.2rem'; title.style.fontWeight='900'; title.style.color='#111'; title.textContent='New Game Setup';
+    wrapper.appendChild(title);
 
-      const slots = $('#playerSlots', wizardCard);
-      slots.innerHTML = '';
-      for(let p=0;p<chosenPlayers;p++){
-        const slot = document.createElement('div'); slot.style.display='flex'; slot.style.alignItems='center'; slot.style.justifyContent='space-between'; slot.style.gap='12px'; slot.style.marginTop='8px';
-        slot.innerHTML = `<div style="display:flex;align-items:center;gap:12px"><div id="preview_${p}" style="width:86px;height:86px;border-radius:50%;overflow:hidden;background:#fff;display:flex;align-items:center;justify-content:center">${p+1}</div><div style="display:flex;flex-direction:column;gap:6px"><input id="name_${p}" placeholder="Player ${p+1} name" style="padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.06);min-width:220px" /><div style="display:flex;gap:8px;align-items:center"><label class="btn">Upload <input type="file" accept="image/*" id="file_${p}" style="display:none"></label><select id="profileSelect_${p}" style="padding:6px;border-radius:8px"></select><button id="saveProfile_${p}" class="btn">Save</button></div></div></div><div style="min-width:120px;text-align:right"><div class="small">Slot ${p+1}</div><div style="height:6px"></div><button id="clearSlot_${p}" class="btn">Clear</button></div>`;
-        slots.appendChild(slot);
+    const desc = document.createElement('div'); desc.className='small'; desc.style.color='#444'; desc.style.marginTop='6px'; desc.textContent='Choose players, rounds, time and theme — then begin.';
+    wrapper.appendChild(desc);
 
-        const preview = slot.querySelector('#preview_' + p);
-        const nameInput = slot.querySelector('#name_' + p);
-        const fileInput = slot.querySelector('#file_' + p);
-        const profileSelect = slot.querySelector('#profileSelect_' + p);
-        const saveBtn = slot.querySelector('#saveProfile_' + p);
-        const clearBtn = slot.querySelector('#clearSlot_' + p);
+    // players
+    const playerRow = document.createElement('div'); playerRow.className='jounty-row'; playerRow.style.marginTop='12px';
+    [1,2,3,4].forEach(n=>{
+      const el = document.createElement('div'); el.className='jounty-tile'; el.textContent = n + (n>1 ? ' Players' : ' Player');
+      if(n===chosenPlayers) el.classList.add('selected');
+      el.addEventListener('click', ()=>{ chosenPlayers=n; renderInlineWizard(); });
+      playerRow.appendChild(el);
+    });
+    wrapper.appendChild(playerRow);
 
-        function refreshProfileSelect(){
-          const list = loadProfiles();
-          profileSelect.innerHTML = '';
-          const empty = document.createElement('option'); empty.value=''; empty.textContent='Choose saved profile'; profileSelect.appendChild(empty);
-          list.forEach(pr=>{ const opt = document.createElement('option'); opt.value=pr.id; opt.textContent=pr.name; profileSelect.appendChild(opt); });
-          const manage = document.createElement('option'); manage.value='__manage__'; manage.textContent='Manage profiles...'; profileSelect.appendChild(manage);
-        }
-        refreshProfileSelect();
+    // rounds/time
+    const rt = document.createElement('div'); rt.style.display='flex'; rt.style.gap='18px'; rt.style.justifyContent='center'; rt.style.marginTop='12px';
+    const roundsCol = document.createElement('div'); const roundsLabel = document.createElement('div'); roundsLabel.style.fontWeight='800'; roundsLabel.textContent='Rounds'; roundsCol.appendChild(roundsLabel);
+    const roundRow = document.createElement('div'); roundRow.className='jounty-row';
+    [2,4,5,10].forEach(r=>{ const el=document.createElement('div'); el.className='jounty-tile'; el.textContent=r+' Rounds'; if(r===chosenRounds) el.classList.add('selected'); el.addEventListener('click', ()=>{ chosenRounds=r; renderInlineWizard(); }); roundRow.appendChild(el); });
+    roundsCol.appendChild(roundRow); rt.appendChild(roundsCol);
 
-        profileSelect.addEventListener('change', (ev)=>{
-          const val = ev.target.value;
-          if(!val) return;
-          if(val === '__manage__'){ showProfileManager(()=>refreshProfileSelect()); profileSelect.value=''; return; }
-          const pr = loadProfiles().find(x=>x.id===val);
-          if(pr){ nameInput.value = pr.name || ''; uploadedImages[p] = pr.image || null; if(pr.image) preview.innerHTML = `<img src="${pr.image}" style="width:100%;height:100%;object-fit:cover">`; else preview.textContent = p+1; }
-        });
+    const timeCol = document.createElement('div'); const timeLabel=document.createElement('div'); timeLabel.style.fontWeight='800'; timeLabel.textContent='Time'; timeCol.appendChild(timeLabel);
+    const timeRow=document.createElement('div'); timeRow.className='jounty-row';
+    [60,90,120].forEach(t=>{ const el=document.createElement('div'); el.className='jounty-tile'; el.textContent=t+'s'; if(t===chosenTime) el.classList.add('selected'); el.addEventListener('click', ()=>{ chosenTime=t; renderInlineWizard(); }); timeRow.appendChild(el); });
+    timeCol.appendChild(timeRow); rt.appendChild(timeCol);
+    wrapper.appendChild(rt);
 
-        fileInput.addEventListener('change', (ev)=>{
-          const f = ev.target.files[0]; if(!f) return;
+    // theme
+    const themeRow = document.createElement('div'); themeRow.className='jounty-row'; themeRow.style.marginTop='12px';
+    ['dark','pastel','sunny','classic','xmas','light'].forEach(t=>{ const el=document.createElement('div'); el.className='jounty-tile'; el.textContent=t.charAt(0).toUpperCase()+t.slice(1); if(t===chosenTheme) el.classList.add('selected'); el.addEventListener('click', ()=>{ chosenTheme=t; renderInlineWizard(); }); themeRow.appendChild(el); });
+    wrapper.appendChild(themeRow);
+
+    // player slots + profile upload/save
+    const slots = document.createElement('div'); slots.style.marginTop='12px';
+    for(let i=0;i<chosenPlayers;i++){
+      const row = document.createElement('div'); row.className='profile-row';
+      const preview = document.createElement('div'); preview.id='preview_'+i; preview.style.width='56px'; preview.style.height='56px'; preview.style.borderRadius='50%'; preview.style.overflow='hidden'; preview.style.background='#eee'; preview.style.display='flex'; preview.style.alignItems='center'; preview.style.justifyContent='center';
+      preview.innerHTML = uploadedImages[i] ? `<img src="${uploadedImages[i]}" style="width:100%;height:100%;object-fit:cover">` : (i+1);
+      const input = document.createElement('input'); input.id='name_'+i; input.placeholder='Player '+(i+1)+' name'; input.value = playerNames[i]||DEFAULT_PLAYER_NAMES[i]; input.style.padding='8px'; input.style.borderRadius='8px'; input.style.border='1px solid rgba(0,0,0,0.06)'; input.style.minWidth='220px';
+      const file = document.createElement('input'); file.type='file'; file.accept='image/*'; file.id='file_'+i;
+      const saveProfileBtn = document.createElement('button'); saveProfileBtn.className='btn'; saveProfileBtn.textContent='Save Profile';
+      const confirmSpan = document.createElement('span'); confirmSpan.id = 'confirm_'+i; confirmSpan.className='confirm'; confirmSpan.style.display='none';
+      saveProfileBtn.addEventListener('click', ()=>{
+        const nameVal = document.getElementById('name_'+i).value.trim() || DEFAULT_PLAYER_NAMES[i];
+        const fileEl = document.getElementById('file_'+i);
+        if(fileEl && fileEl.files && fileEl.files[0]){
           const reader = new FileReader();
-          reader.onload = (e)=>{ uploadedImages[p] = e.target.result; preview.innerHTML = `<img src="${uploadedImages[p]}" style="width:100%;height:100%;object-fit:cover">`; };
-          reader.readAsDataURL(f);
-        });
+          reader.onload = function(ev){
+            const data = ev.target.result;
+            const id = 'p_'+Date.now();
+            const list = loadProfiles();
+            list.push({id,name:nameVal,image:data});
+            saveProfiles(list);
+            uploadedImages[i] = data;
+            document.getElementById('preview_'+i).innerHTML = `<img src="${data}" style="width:100%;height:100%;object-fit:cover">`;
+            document.getElementById('confirm_'+i).textContent = 'Saved';
+            document.getElementById('confirm_'+i).style.display = 'inline';
+            setTimeout(()=>{ document.getElementById('confirm_'+i).style.display='none'; }, 1800);
+            setMessage('Profile saved: '+nameVal);
+            updateScoreboard();
+          };
+          reader.readAsDataURL(fileEl.files[0]);
+        } else {
+          const id = 'p_'+Date.now();
+          const list = loadProfiles();
+          list.push({id,name:nameVal,image:null});
+          saveProfiles(list);
 
-        saveBtn.addEventListener('click', ()=>{
-          const nm = nameInput.value.trim() || ('Player ' + (p+1));
-          const img = uploadedImages[p] || null;
-          const id = 'p_' + Date.now().toString(36) + '_' + Math.floor(Math.random()*9999);
-          const profile = { id, name: nm, image: img };
-          addOrUpdateProfile(profile);
-          refreshProfileSelect();
-          setMessage('Profile saved: ' + nm);
-        });
+          document.getElementById('confirm_'+i).textContent = 'Saved';
+          document.getElementById('confirm_'+i).style.display = 'inline';
+          setTimeout(()=>{ document.getElementById('confirm_'+i).style.display='none'; }, 1400);
 
-        clearBtn.addEventListener('click', ()=>{
-          nameInput.value = '';
-          uploadedImages[p] = null;
-          preview.textContent = p+1;
-        });
-      }
-
-      $('#finishSetup', wizardCard).addEventListener('click', ()=>{
-        try{
-          for(let p=0;p<chosenPlayers;p++){
-            const nameEl = document.getElementById('name_' + p);
-            playerNames[p] = nameEl && nameEl.value.trim() ? nameEl.value.trim() : DEFAULT_PLAYER_NAMES[p];
-          }
-          totalRounds = chosenRounds;
-          currentRound = 0;
-          scores = loadScores().slice(0,4);
-          saveScores(scores);
-          updateScoreboard();
-          applyTheme(chosenTheme);
-
-          const w = document.getElementById('wizard');
-          if(w){ w.style.display = 'none'; w.style.pointerEvents = 'none'; }
-          const card = document.getElementById('wizardCard');
-          if(card) card.innerHTML = '';
-
-          renderStartButton();
-          generateWordMagnets();
-
-          setTimeout(()=>{ window.dispatchEvent(new Event('resize')); }, 60);
-
-          setMessage('Game ready. Press Start Game to begin round 1.');
-        }catch(err){
-          console.error('Finish setup failed', err);
-          const card = document.getElementById('wizardCard');
-          if(card){
-            card.innerHTML = '<div style="color:#b00;font-weight:800;padding:18px">Setup failed — check console for details.</div>';
-          }
+          setMessage('Profile saved (no image): '+nameVal);
         }
       });
 
-      $('#backToRounds', wizardCard).addEventListener('click', ()=>{ wizardStep=2; renderWizard(); });
-      return;
+      row.appendChild(preview);
+      row.appendChild(input);
+      row.appendChild(file);
+      row.appendChild(saveProfileBtn);
+      row.appendChild(confirmSpan);
+      slots.appendChild(row);
     }
-  }
 
-  function showProfileManager(onClose){
-    const modal = document.createElement('div'); modal.className='modal-backdrop';
-    const card = document.createElement('div'); card.className='modal-card';
-    card.innerHTML = `<div style="font-weight:800;color:#111">Saved Profiles</div><div id="profileList" style="margin-top:12px;max-height:50vh;overflow:auto"></div><div style="display:flex;justify-content:flex-end;margin-top:12px"><button id="closeProfiles" class="btn">Close</button></div>`;
-    modal.appendChild(card); document.body.appendChild(modal);
-    function refresh(){
-      const listEl = card.querySelector('#profileList'); listEl.innerHTML = '';
-      const list = loadProfiles();
-      if(list.length===0){ listEl.innerHTML = '<div style="padding:8px;color:#666">No saved profiles yet.</div>'; return; }
-      list.forEach(pr=>{
-        const row = document.createElement('div'); row.style.display='flex'; row.style.alignItems='center'; row.style.justifyContent='space-between'; row.style.gap='12px'; row.style.padding='8px 0';
-        row.innerHTML = `<div style="display:flex;align-items:center;gap:12px"><div style="width:48px;height:48px;border-radius:50%;overflow:hidden;background:#eee"><img src="${pr.image||''}" style="width:100%;height:100%;object-fit:cover"></div><div><div style="font-weight:700;color:#111">${pr.name}</div><div style="font-size:0.85rem;color:#666">${pr.id}</div></div></div><div style="display:flex;gap:8px"><button class="btn use" data-id="${pr.id}">Use</button><button class="btn del" data-id="${pr.id}">Delete</button></div>`;
-        listEl.appendChild(row);
-      });
-      listEl.querySelectorAll('button.use').forEach(b=>{
-        b.addEventListener('click', (ev)=>{
-          const id = ev.target.dataset.id;
-          const pr = loadProfiles().find(x=>x.id===id);
-          if(pr){
-            const firstName = document.querySelector('input[id^="name_"]');
-            const firstPreview = document.querySelector('div[id^="preview_"]');
-            if(firstName && firstPreview){
-              firstName.value = pr.name;
-              const idx = parseInt(firstPreview.id.split('_')[1],10);
-              uploadedImages[idx] = pr.image || null;
-              firstPreview.innerHTML = pr.image ? `<img src="${pr.image}" style="width:100%;height:100%;object-fit:cover">` : (idx+1);
-              setMessage('Profile applied to first slot: ' + pr.name);
-            }
+    wrapper.appendChild(slots);
+
+    // finish (auto-start) / cancel
+    const actions = document.createElement('div');
+    actions.style.display='flex';
+    actions.style.justifyContent='center';
+    actions.style.gap='12px';
+    actions.style.marginTop='14px';
+
+    const finishBtn = document.createElement('div');
+    finishBtn.className='jounty-tile';
+    finishBtn.id='finishSetupInline';
+    finishBtn.textContent='Finish Setup (Auto Start)';
+
+    const cancelBtn = document.createElement('div');
+    cancelBtn.className='btn';
+    cancelBtn.textContent='Cancel';
+    cancelBtn.addEventListener('click', ()=>{
+      inlineWizard.style.display='none';
+      setMessage('Setup cancelled.');
+    });
+
+    actions.appendChild(finishBtn);
+    actions.appendChild(cancelBtn);
+    wrapper.appendChild(actions);
+
+    inlineWizard.appendChild(wrapper);
+    inlineWizard.style.display='block';
+
+    if(finishBtn && !finishBtn._bound){
+      finishBtn._bound = true;
+      finishBtn.addEventListener('click', ()=>{
+        for(let p=0;p<chosenPlayers;p++){
+          const nameEl = document.getElementById('name_'+p);
+          playerNames[p] = nameEl && nameEl.value.trim()
+            ? nameEl.value.trim()
+            : DEFAULT_PLAYER_NAMES[p];
+
+          const fileEl = document.getElementById('file_'+p);
+          if(fileEl && fileEl.files && fileEl.files[0]){
+            const reader = new FileReader();
+            reader.onload = function(ev){
+              uploadedImages[p] = ev.target.result;
+            };
+            reader.readAsDataURL(fileEl.files[0]);
           }
-        });
-      });
-      listEl.querySelectorAll('button.del').forEach(b=>{
-        b.addEventListener('click', (ev)=>{
-          const id = ev.target.dataset.id;
-          deleteProfile(id);
-          refresh();
-        });
+        }
+
+        // finalize and auto-start first round
+        setTimeout(()=>{ finalizeSetup(true); }, 160);
       });
     }
-    refresh();
-    card.querySelector('#closeProfiles').addEventListener('click', ()=>{ document.body.removeChild(modal); if(onClose) onClose(); });
   }
 
-  function renderStartButton(){
-    startGameWrap.innerHTML = '';
-    const btn = document.createElement('div'); btn.className='btn-primary'; btn.textContent = 'Start Game';
-    btn.addEventListener('click', ()=>{ startRound(); });
-    startGameWrap.appendChild(btn);
+  function finalizeSetup(autoStart){
+    totalRounds = chosenRounds;
+    currentRound = 0;
+    scores = loadScores().slice(0,4);
+    saveScores(scores);
+    updateScoreboard();
+    applyTheme(chosenTheme);
+    inlineWizard.style.display='none';
+    generateWordMagnets();
+    setMessage('Game ready.' + (autoStart ? ' Starting round 1...' : ' Press Start Game.'));
+    if(autoStart){
+      setTimeout(()=>{ startRound(); }, 220);
+    }
   }
 
   function setupBoard(){
@@ -517,260 +368,444 @@
     markers = [];
     const rect = playArea.getBoundingClientRect();
     const w = rect.width, h = rect.height;
-    const positions = [
-      {x: Math.max(12, Math.round(w * 0.02)), y: Math.max(12, Math.round(h * 0.02))},
-      {x: Math.max(12, Math.round(w * 0.86)), y: Math.max(12, Math.round(h * 0.02))},
-      {x: Math.max(12, Math.round(w * 0.02)), y: Math.max(12, Math.round(h * 0.86))},
-      {x: Math.max(12, Math.round(w * 0.86)), y: Math.max(12, Math.round(h * 0.86))}
-    ];
+    const positions = [{x:Math.max(12,Math.round(w*0.02)),y:Math.max(12,Math.round(h*0.02))},{x:Math.max(12,Math.round(w*0.86)),y:Math.max(12,Math.round(h*0.02))},{x:Math.max(12,Math.round(w*0.02)),y:Math.max(12,Math.round(h*0.86))},{x:Math.max(12,Math.round(w*0.86)),y:Math.max(12,Math.round(h*0.86))}];
     for(let i=0;i<chosenPlayers;i++){
-      const el = document.createElement('div'); el.className = 'player-marker marker-p'+(i+1);
-      el.style.left = positions[i].x + 'px'; el.style.top = positions[i].y + 'px';
+      const el = document.createElement('div'); el.className='player-marker marker-p'+(i+1); el.style.left=positions[i].x+'px'; el.style.top=positions[i].y+'px';
       const inner = document.createElement('div'); inner.style.width='100%'; inner.style.height='100%'; inner.style.display='flex'; inner.style.alignItems='center'; inner.style.justifyContent='center'; inner.style.fontWeight='900'; inner.style.color='#111';
-      if(uploadedImages[i]){ const img = document.createElement('img'); img.className='marker-img'; img.src = uploadedImages[i]; inner.appendChild(img); }
-      else inner.textContent = playerNames[i] || DEFAULT_PLAYER_NAMES[i];
-      el.appendChild(inner);
-      playArea.appendChild(el);
-      const marker = {playerIndex:i, el, x:positions[i].x, y:positions[i].y, imgSrc:uploadedImages[i]||null};
-      markers.push(marker);
-      makeMarkerDraggable(marker);
+      if(uploadedImages[i]){ const img=document.createElement('img'); img.className='marker-img'; img.src=uploadedImages[i]; inner.appendChild(img); } else { inner.textContent = playerNames[i] || DEFAULT_PLAYER_NAMES[i]; }
+      el.appendChild(inner); playArea.appendChild(el);
+      const marker = {playerIndex:i,el,x:positions[i].x,y:positions[i].y,imgSrc:uploadedImages[i]||null};
+      markers.push(marker); makeMarkerDraggable(marker);
     }
     generateWordMagnets();
-    setMessage('Place markers, then press Start Game.');
+    setMessage('Place markers, then play proceeds automatically.');
   }
 
-  function clearBoard(){
-    magnets.forEach(m=>{ if(m.el && m.el.parentNode) m.el.parentNode.removeChild(m.el); });
-    magnets = [];
-    markers.forEach(m=>{ if(m.el && m.el.parentNode) m.el.parentNode.removeChild(m.el); });
-    markers = [];
-    magnetId = 1;
-  }
+  function clearBoard(){ magnets.forEach(m=>{ if(m.el && m.el.parentNode) m.el.parentNode.removeChild(m.el); }); magnets=[]; markers.forEach(m=>{ if(m.el && m.el.parentNode) m.el.parentNode.removeChild(m.el); }); markers=[]; magnetId=1; }
 
   function generateWordMagnets(){
-    wordBank.innerHTML = '';
-    magnets.forEach(m=>{ if(m.el && m.el.parentNode) m.el.parentNode.removeChild(m.el); });
-    magnets = [];
-    magnetId = 1;
-    const pool = buildBigPool();
-    const chosen = new Set();
-    COMMON_WORDS.forEach(w=>{
-      const found = pool.find(p => p.toLowerCase() === w.toLowerCase());
-      if(found) chosen.add(found);
-      else chosen.add(w);
-    });
+    wordBank.innerHTML=''; magnets.forEach(m=>{ if(m.el && m.el.parentNode) m.el.parentNode.removeChild(m.el); }); magnets=[]; magnetId=1;
+    const pool = buildBigPool(); const chosen = new Set();
+    // include COMMON_WORDS and random picks from pool
+    COMMON_WORDS.forEach(w=>chosen.add(w));
     while(chosen.size < ROUND_WORD_COUNT){
-      const idx = Math.floor(Math.random() * pool.length);
+      const idx = Math.floor(Math.random()*pool.length);
       chosen.add(pool[idx]);
     }
-    const words = Array.from(chosen);
-    shuffle(words);
+    const words = Array.from(chosen); shuffle(words);
     const visibleCount = Math.min(VISIBLE_MAGNETS, words.length);
-    const bankRect = wordBank.getBoundingClientRect();
-    const bankW = Math.max(600, bankRect.width || 1200);
-    const bankH = Math.max(220, bankRect.height || 320);
+    const bankRect = wordBank.getBoundingClientRect(); const bankW = Math.max(600, bankRect.width || 1200); const bankH = Math.max(220, bankRect.height || 320);
     for(let i=0;i<visibleCount;i++){
-      const text = words[i];
-      const el = document.createElement('div'); el.className='word-magnet'; el.innerHTML = `<div class="magnet-text">${escapeHtml(text)}</div>`;
-      const angle = Math.round(rand(-6,6));
-      const scale = (rand(0.99,1.01)).toFixed(2);
-      const x = Math.round(rand(8, bankW - 160));
-      const y = Math.round(rand(6, bankH - 48));
+      const text = words[i]; const el = document.createElement('div'); el.className='word-magnet jaunty'; el.innerHTML = `<div class="magnet-text">${escapeHtml(text)}</div>`;
+      const angle = Math.round(rand(-18,18)); const scale = (rand(0.98,1.04)).toFixed(2); const x = Math.round(rand(8, bankW - 160)); const y = Math.round(rand(6, bankH - 48));
       el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.transform = `rotate(${angle}deg) scale(${scale})`;
+      // store a small random offset for ratings display
+      el.dataset._angle = angle; el.dataset._scale = scale; el.dataset._x = x; el.dataset._y = y;
       wordBank.appendChild(el);
-      const magnet = {id:magnetId++, text, el, inPlay:false, x, y, angle};
-      magnets.push(magnet);
-      makeMagnetDraggable(magnet);
+      const magnet = {id:magnetId++,text,el,inPlay:false,x,y,angle};
+      magnets.push(magnet); makeMagnetDraggable(magnet);
     }
   }
 
   function makeMagnetDraggable(magnet){
-    const el = magnet.el;
-    let dragging=false, offsetX=0, offsetY=0;
-    function onDown(e){
-      e.preventDefault();
-      dragging=true;
-      el.style.zIndex = 9999;
-      const r = el.getBoundingClientRect();
-      offsetX = e.clientX - r.left; offsetY = e.clientY - r.top;
-      try{ el.setPointerCapture(e.pointerId); }catch(e){}
-      el.classList.add('dragging');
-      wordBank.classList.add('drag-over-candidate');
-    }
-    function onMove(e){
-      if(!dragging) return;
-      e.preventDefault();
-      let x = e.clientX - offsetX; let y = e.clientY - offsetY;
-      const vw = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
-      const vh = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
-      x = clamp(x, 0, vw - el.offsetWidth); y = clamp(y, 0, vh - el.offsetHeight);
-      el.style.left = x + 'px'; el.style.top = y + 'px';
-      if(!magnet._absolute){ magnet._absolute = true; document.body.appendChild(el); }
-      magnet.x = x; magnet.y = y;
-      const bankRect = wordBank.getBoundingClientRect();
-      if(e.clientX >= bankRect.left && e.clientX <= bankRect.right && e.clientY >= bankRect.top && e.clientY <= bankRect.bottom) wordBank.classList.add('drag-over'); else wordBank.classList.remove('drag-over');
-    }
-    function onUp(e){
-      if(!dragging) return;
-      dragging=false;
-      el.style.zIndex = 1;
-      try{ el.releasePointerCapture(e.pointerId); }catch(e){}
-      el.classList.remove('dragging');
-      wordBank.classList.remove('drag-over');
-      wordBank.classList.remove('drag-over-candidate');
-
-      const centerX = magnet.x + el.offsetWidth/2;
-      const centerY = magnet.y + el.offsetHeight/2;
-      const playRect = playArea.getBoundingClientRect();
-      const bankRect = wordBank.getBoundingClientRect();
-
+    const el = magnet.el; let dragging=false, offsetX=0, offsetY=0;
+    function onDown(e){ e.preventDefault(); dragging=true; el.style.zIndex=9999; const r=el.getBoundingClientRect(); offsetX=e.clientX-r.left; offsetY=e.clientY-r.top; try{ el.setPointerCapture(e.pointerId); }catch(e){} el.classList.add('dragging'); }
+    function onMove(e){ if(!dragging) return; e.preventDefault(); let x=e.clientX-offsetX; let y=e.clientY-offsetY; const vw=Math.max(document.documentElement.clientWidth, window.innerWidth||0); const vh=Math.max(document.documentElement.clientHeight, window.innerHeight||0); x=clamp(x,0,vw-el.offsetWidth); y=clamp(y,0,vh-el.offsetHeight); el.style.left=x+'px'; el.style.top=y+'px'; if(!magnet._absolute){ magnet._absolute=true; document.body.appendChild(el); } magnet.x=x; magnet.y=y; }
+    function onUp(e){ if(!dragging) return; dragging=false; el.style.zIndex=1; try{ el.releasePointerCapture(e.pointerId); }catch(e){} el.classList.remove('dragging'); const centerX = magnet.x + el.offsetWidth/2; const centerY = magnet.y + el.offsetHeight/2; const playRect = playArea.getBoundingClientRect(); const bankRect = wordBank.getBoundingClientRect();
       if(centerX >= playRect.left && centerX <= playRect.right && centerY >= playRect.top && centerY <= playRect.bottom){
-        const localX = centerX - playRect.left - el.offsetWidth/2;
-        const localY = centerY - playRect.top - el.offsetHeight/2;
-        magnet.inPlay = true;
-        magnet.x = clamp(localX, 0, playRect.width - el.offsetWidth);
-        magnet.y = clamp(localY, 0, playRect.height - el.offsetHeight);
-        playArea.appendChild(el);
-        el.style.left = magnet.x + 'px'; el.style.top = magnet.y + 'px';
-        magnet._absolute = false;
-        return;
+        const localX = centerX - playRect.left - el.offsetWidth/2; const localY = centerY - playRect.top - el.offsetHeight/2;
+        magnet.inPlay=true; magnet.x=clamp(localX,0,playRect.width-el.offsetWidth); magnet.y=clamp(localY,0,playRect.height-el.offsetHeight); playArea.appendChild(el); el.style.left=magnet.x+'px'; el.style.top=magnet.y+'px'; magnet._absolute=false; return;
       }
-
       if(centerX >= bankRect.left && centerX <= bankRect.right && centerY >= bankRect.top && centerY <= bankRect.bottom){
-        const x = Math.round(rand(8, Math.max(80, bankRect.width - 160)));
-        const y = Math.round(rand(6, Math.max(20, bankRect.height - 48)));
-        magnet.inPlay = false; magnet.x = x; magnet.y = y;
-        wordBank.appendChild(el); el.style.left = x + 'px'; el.style.top = y + 'px'; magnet._absolute = false;
-        return;
+        const x = Math.round(rand(8, Math.max(80, bankRect.width - 160))); const y = Math.round(rand(6, Math.max(20, bankRect.height - 48)));
+        magnet.inPlay=false; magnet.x=x; magnet.y=y; wordBank.appendChild(el); el.style.left=x+'px'; el.style.top=y+'px'; magnet._absolute=false; return;
       }
-
-      if(magnet.inPlay){
-        const playRect2 = playArea.getBoundingClientRect();
-        magnet.x = clamp(magnet.x, 0, playRect2.width - el.offsetWidth);
-        magnet.y = clamp(magnet.y, 0, playRect2.height - el.offsetHeight);
-        playArea.appendChild(el); el.style.left = magnet.x + 'px'; el.style.top = magnet.y + 'px'; magnet._absolute = false;
-      } else {
-        const bankRect2 = wordBank.getBoundingClientRect();
-        const x = Math.round(rand(8, Math.max(80, bankRect2.width - 160)));
-        const y = Math.round(rand(6, Math.max(20, bankRect2.height - 48)));
-        magnet.inPlay = false; magnet.x = x; magnet.y = y;
-        wordBank.appendChild(el); el.style.left = x + 'px'; el.style.top = y + 'px'; magnet._absolute = false;
-      }
+      if(magnet.inPlay){ const playRect2 = playArea.getBoundingClientRect(); magnet.x = clamp(magnet.x,0,playRect2.width-el.offsetWidth); magnet.y = clamp(magnet.y,0,playRect2.height-el.offsetHeight); playArea.appendChild(el); el.style.left=magnet.x+'px'; el.style.top=magnet.y+'px'; magnet._absolute=false; } else { const bankRect2 = wordBank.getBoundingClientRect(); const x = Math.round(rand(8, Math.max(80, bankRect2.width - 160))); const y = Math.round(rand(6, Math.max(20, bankRect2.height - 48))); magnet.inPlay=false; magnet.x=x; magnet.y=y; wordBank.appendChild(el); el.style.left=x+'px'; el.style.top=y+'px'; magnet._absolute=false; }
     }
-    el.addEventListener('pointerdown', onDown);
-    window.addEventListener('pointermove', onMove);
-    window.addEventListener('pointerup', onUp);
-  }
-
-  function makeMarkerDraggable(marker){
-    const el = marker.el;
-    let dragging=false, offsetX=0, offsetY=0;
-    function onDown(e){
-      e.preventDefault();
-      dragging=true;
-      const r = el.getBoundingClientRect();
-      offsetX = e.clientX - r.left; offsetY = e.clientY - r.top;
-      try{ el.setPointerCapture(e.pointerId); }catch(e){}
-    }
-    function onMove(e){
-      if(!dragging) return;
-      e.preventDefault();
-      const playRect = playArea.getBoundingClientRect();
-      let x = e.clientX - playRect.left - offsetX;
-      let y = e.clientY - playRect.top - offsetY;
-      x = clamp(x, 0, playRect.width - el.offsetWidth); y = clamp(y, 0, playRect.height - el.offsetHeight);
-      marker.x = x; marker.y = y; el.style.left = x + 'px'; el.style.top = y + 'px';
-    }
-    function onUp(e){
-      if(!dragging) return;
-      dragging=false;
-      try{ el.releasePointerCapture(e.pointerId); }catch(e){}
-    }
-    el.addEventListener('pointerdown', onDown);
-    el.addEventListener('pointermove', onMove);
-    el.addEventListener('pointerup', onUp);
-    el.addEventListener('pointercancel', onUp);
+    el.addEventListener('pointerdown', onDown); window.addEventListener('pointermove', onMove); window.addEventListener('pointerup', onUp);
   }
 
   function startRound(){
     if(roundActive) return;
     if(currentRound === 0) setupBoard();
-    roundActive = true;
-    currentRound++;
-    totalRounds = chosenRounds;
-    timeLeft = chosenTime;
-    timerDisplay.textContent = timeLeft + 's';
-    updateTimerBar();
-    setMessage(`Round ${currentRound}/${totalRounds} started — ${timeLeft}s`);
+    roundActive=true; currentRound++; totalRounds=chosenRounds; timeLeft=chosenTime; timerDisplay.textContent = timeLeft + 's'; updateTimerBar(); setMessage(`Round ${currentRound}/${totalRounds} started — ${timeLeft}s`);
     if(timer) clearInterval(timer);
-    timer = setInterval(()=>{
-      timeLeft--;
-      timerDisplay.textContent = timeLeft + 's';
-      updateTimerBar();
-      if(timeLeft <= 0){ clearInterval(timer); timer = null; endRound(); }
-    },1000);
+    timer = setInterval(()=>{ timeLeft--; timerDisplay.textContent = timeLeft + 's'; updateTimerBar(); if(timeLeft <= 0){ clearInterval(timer); timer=null; endRound(); } },1000);
   }
-  function updateTimerBar(){ const pct = Math.max(0, Math.min(1, timeLeft / chosenTime)); timerBar.style.width = (pct*100) + '%'; if(pct < 0.25) timerBar.style.filter = 'hue-rotate(-20deg) saturate(1.2)'; else timerBar.style.filter = ''; }
+
+  function updateTimerBar(){ const pct = Math.max(0, Math.min(1, timeLeft / chosenTime)); timerBar.style.width = (pct*100) + '%'; if(pct < 0.25) timerBar.style.filter='hue-rotate(-20deg) saturate(1.2)'; else timerBar.style.filter=''; }
+
   function endRound(){
-    roundActive = false;
-    timerDisplay.textContent = '0s';
-    timerBar.style.width = '0%';
-    setMessage('Time! Freezing board and computing sentences...');
-    magnets.forEach(m=>{ if(m.el) m.el.style.pointerEvents = 'none'; });
-    markers.forEach(m=>{ if(m.el) m.el.style.pointerEvents = 'none'; });
+    roundActive=false; timerDisplay.textContent='0s'; timerBar.style.width='0%'; setMessage('Time! Freezing board and opening ratings...');
+    magnets.forEach(m=>{ if(m.el) m.el.style.pointerEvents='none'; });
+    markers.forEach(m=>{ if(m.el) m.el.style.pointerEvents='none'; });
     setTimeout(()=>{ openRatingsModal(); }, 200);
   }
 
-  // (Remaining functions: clustering, rating modal, winner modal, final results, scoreboard, init)
-  // For brevity the rest of the logic is unchanged from the working version you approved earlier.
-  // The full script continues with clusterMagnets, assignClustersToMarkers, orderMagnetsRowMajor,
-  // openRatingsModal, showWinnerAndAdvance, resetForNextRound, showFinalResults (robust reset),
-  // updateScoreboard, renderScoreboardInline, reshuffle handler, and init().
+  function clusterMagnets(eps){
+    const threshold = eps || 140;
+    const inPlay = magnets.filter(m => m.inPlay && m.el);
+    const visited = new Set();
+    const clusters = [];
 
-  // Minimal placeholders to ensure the file runs if you paste directly:
-  function clusterMagnets(eps){ return []; }
-  function assignClustersToMarkers(c){ return Array.from({length:chosenPlayers}, ()=>[]); }
-  function orderMagnetsRowMajor(arr){ return arr || []; }
-  function openRatingsModal(){ /* full implementation included in original file */ showFinalResults(); }
-  function showWinnerAndAdvance(winnerIndex, worstIndex){ showFinalResults(); }
-  function resetForNextRound(){ generateWordMagnets(); markers.forEach(m=>{ if(m.el) m.el.style.pointerEvents='auto'; }); }
-  function showFinalResults(){
+    function centerOf(m){
+      return {
+        x: m.x + (m.el ? m.el.offsetWidth/2 : 0),
+        y: m.y + (m.el ? m.el.offsetHeight/2 : 0)
+      };
+    }
+
+    function dist(a,b){
+      const dx = a.x - b.x;
+      const dy = a.y - b.y;
+      return Math.sqrt(dx*dx + dy*dy);
+    }
+
+    for(let i=0;i<inPlay.length;i++){
+      const start = inPlay[i];
+      if(visited.has(start)) continue;
+
+      const queue = [start];
+      visited.add(start);
+      const cluster = [];
+
+      while(queue.length){
+        const cur = queue.shift();
+        cluster.push(cur);
+        const ccur = centerOf(cur);
+
+        for(let j=0;j<inPlay.length;j++){
+          const other = inPlay[j];
+          if(visited.has(other)) continue;
+
+          const cother = centerOf(other);
+          if(dist(ccur, cother) <= threshold){
+            visited.add(other);
+            queue.push(other);
+          }
+        }
+      }
+
+      if(cluster.length) clusters.push(cluster);
+    }
+
+    return clusters;
+  }
+
+  function assignClustersToMarkers(clusters){
+    const assigned = Array.from({length: chosenPlayers}, ()=>[]);
+    if(!markers || markers.length===0) return assigned;
+
+    clusters.forEach(cluster=>{
+      let cx=0, cy=0;
+      cluster.forEach(m=>{
+        cx += m.x + (m.el ? m.el.offsetWidth/2 : 0);
+        cy += m.y + (m.el ? m.el.offsetHeight/2 : 0);
+      });
+      cx /= cluster.length;
+      cy /= cluster.length;
+
+      let bestIdx = 0;
+      let bestDist = Infinity;
+
+      markers.forEach((mk, idx)=>{
+        const mx = mk.x + (mk.el ? mk.el.offsetWidth/2 : 0);
+        const my = mk.y + (mk.el ? mk.el.offsetHeight/2 : 0);
+        const d = Math.hypot(mx - cx, my - cy);
+        if(d < bestDist){
+          bestDist = d;
+          bestIdx = idx;
+        }
+      });
+
+      assigned[bestIdx].push(cluster);
+    });
+
+    return assigned;
+  }
+
+  function orderMagnetsRowMajor(cluster){
+    if(!cluster || !cluster.length) return [];
+    const tolerance = 40;
+    const copy = cluster.slice();
+
+    copy.sort((a,b)=>{
+      const ay = a.y;
+      const by = b.y;
+      if(Math.abs(ay - by) > tolerance) return ay - by;
+      return a.x - b.x;
+    });
+
+    return copy;
+  }
+
+  function openRatingsModal(){
+    const clusters = clusterMagnets(140);
+    const byPlayer = assignClustersToMarkers(clusters);
+    const sentencesByPlayer = byPlayer.map(playerClusters=>{
+      const out=[]; playerClusters.forEach(cluster=>{ const ordered=orderMagnetsRowMajor(cluster); const text = ordered.map(m=>m.text).join(' ').trim(); if(text) out.push({magnets:ordered,text}); }); return out;
+    });
+
     const modal = document.createElement('div'); modal.className='modal-backdrop';
     const card = document.createElement('div'); card.className='modal-card';
-    card.innerHTML = `<div style="font-weight:900;font-size:1.2rem">Game Over — Final Scores</div>
-      <div style="margin-top:12px">${renderScoreboardInline(true)}</div>
-      <div style="display:flex;justify-content:flex-end;margin-top:14px;gap:8px">
-        <div id="finalRestart" class="jounty-tile">New Game</div>
-        <div id="finalClose" class="btn">Close</div>
-      </div>`;
-    modal.appendChild(card); document.body.appendChild(modal);
-    function doFullReset(){
-      try{ document.querySelectorAll('.modal-backdrop').forEach(n=>{ if(n!==modal) n.remove(); }); }catch(e){}
-      if(modal && modal.parentNode) modal.parentNode.removeChild(modal);
-      scores = [0,0,0,0]; saveScores(scores); updateScoreboard();
-      currentRound = 0; totalRounds = chosenRounds; clearBoard(); renderStartButton(); setMessage('Game reset. Open New Game to configure players, rounds and theme.'); setTimeout(()=> openWizard(), 80);
+    let html = `<div style="font-weight:900;font-size:1.2rem">Rate the chaos</div><div style="margin-top:6px;font-size:0.9rem;color:#444">Review each player’s sentences and give them a score for this round.</div><div class="rating-grid" style="margin-top:12px">`;
+
+    for(let p=0;p<chosenPlayers;p++){
+      const sentences = sentencesByPlayer[p] || [];
+      const name = escapeHtml(playerNames[p] || ('P'+(p+1)));
+      html += `<div class="rating-row" data-player="${p}" style="display:flex;align-items:center;justify-content:space-between;gap:12px"><div style="flex:1;min-width:0"><div style="font-weight:800;margin-bottom:6px">${name}</div>`;
+      if(sentences.length===0) html += `<div style="color:#777;font-size:0.9rem;margin-bottom:6px">No sentence detected — you can still rate this player manually.</div>`;
+      sentences.forEach(s=>{
+        html += `<div style="margin-bottom:6px">`;
+        s.magnets.forEach(m=>{
+          // render jaunty magnets visually similar to playboard
+          const angle = (m.el && m.el.dataset && m.el.dataset._angle) ? m.el.dataset._angle : Math.round(rand(-12,12));
+          const scale = (m.el && m.el.dataset && m.el.dataset._scale) ? m.el.dataset._scale : (rand(0.98,1.03)).toFixed(2);
+          const jitterX = Math.round(rand(-6,6));
+          const jitterY = Math.round(rand(-4,4));
+          html += `<span class="modal-magnet" style="display:inline-block;transform:translate(${jitterX}px,${jitterY}px) rotate(${angle}deg) scale(${scale});">${escapeHtml(m.text)}</span>`;
+        });
+        html += `</div>`;
+      });
+      html += `</div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+        <div style="font-size:0.8rem;color:#666">Round score</div>
+        <div>`;
+
+      for(let score=1; score<=5; score++){
+        html += `<button class="pill" data-player="${p}" data-score="${score}">${score}</button>`;
+      }
+
+      html += `</div></div></div>`;
     }
-    const restartBtn = card.querySelector('#finalRestart'); if(restartBtn) restartBtn.addEventListener('click',(ev)=>{ ev.preventDefault(); doFullReset(); });
-    const closeBtn = card.querySelector('#finalClose'); if(closeBtn) closeBtn.addEventListener('click',(ev)=>{ ev.preventDefault(); if(modal && modal.parentNode) modal.parentNode.removeChild(modal); setMessage('Final scores shown. Press New Game to start again.'); });
-    function onKey(e){ if(e.key==='Escape'){ if(modal && modal.parentNode) modal.parentNode.removeChild(modal); window.removeEventListener('keydown', onKey); } }
+
+    html += `</div>
+      <div style="display:flex;justify-content:flex-end;margin-top:14px;gap:8px">
+        <button id="ratingsCancel" class="btn">Skip ratings</button>
+        <div id="ratingsSubmit" class="jounty-tile">Submit ratings</div>
+      </div>`;
+
+    card.innerHTML = html;
+    modal.appendChild(card);
+    document.body.appendChild(modal);
+
+    const ratingsMap = {};
+
+    // score selection
+    card.querySelectorAll('.pill').forEach(btn=>{
+      btn.addEventListener('click', ev=>{
+        const b = ev.currentTarget;
+        const player = parseInt(b.dataset.player, 10);
+        const score = parseInt(b.dataset.score, 10);
+
+        ratingsMap[player] = score;
+
+        card.querySelectorAll(`.pill[data-player="${player}"]`)
+            .forEach(p=>p.classList.remove('selected'));
+
+        b.classList.add('selected');
+      });
+    });
+
+    const submitBtn = card.querySelector('#ratingsSubmit');
+    const cancelBtn = card.querySelector('#ratingsCancel');
+
+    submitBtn.addEventListener('click', ()=>{
+      const deltas = Array.from({length: chosenPlayers}, ()=>0);
+
+      Object.keys(ratingsMap).forEach(k=>{
+        const idx = parseInt(k,10);
+        deltas[idx] = ratingsMap[idx] || 0;
+      });
+
+      const anyRated = deltas.some(d=>d!==0);
+
+      if(!anyRated){
+        setMessage('No ratings given — skipping scoring for this round.');
+        if(modal && modal.parentNode) modal.parentNode.removeChild(modal);
+        showWinnerAndAdvance(null);
+        return;
+      }
+
+      // apply scores
+      for(let i=0;i<chosenPlayers;i++){
+        scores[i] = (scores[i] || 0) + (deltas[i] || 0);
+      }
+
+      // detect winner(s)
+      let max = -Infinity;
+      for(let i=0;i<chosenPlayers;i++){
+        if(deltas[i] > max) max = deltas[i];
+      }
+
+      const topIndexes = [];
+      for(let i=0;i<chosenPlayers;i++){
+        if(deltas[i] === max && max > 0){
+          topIndexes.push(i);
+        }
+      }
+
+      // draw bonus
+      if(topIndexes.length > 1){
+        topIndexes.forEach(i=>{
+          scores[i] = (scores[i] || 0) + 1;
+        });
+      }
+
+      saveScores(scores);
+      updateScoreboard();
+
+      if(modal && modal.parentNode) modal.parentNode.removeChild(modal);
+
+      if(topIndexes.length > 1) showWinnerAndAdvance(topIndexes);
+      else if(topIndexes.length === 1) showWinnerAndAdvance(topIndexes[0]);
+      else showWinnerAndAdvance(null);
+    });
+
+    cancelBtn.addEventListener('click', ()=>{
+      setMessage('Ratings skipped. No score changes this round.');
+      if(modal && modal.parentNode) modal.parentNode.removeChild(modal);
+      showWinnerAndAdvance(null);
+    });
+
+    function onKey(e){
+      if(e.key === 'Escape'){
+        if(modal && modal.parentNode) modal.parentNode.removeChild(modal);
+        window.removeEventListener('keydown', onKey);
+        showWinnerAndAdvance(null);
+      }
+    }
+
     window.addEventListener('keydown', onKey);
   }
-  function updateScoreboard(){ scoreboardEl.innerHTML=''; for(let i=0;i<chosenPlayers;i++){ const pill=document.createElement('div'); pill.className='score-pill'; pill.textContent=`${playerNames[i]||('P'+(i+1))}: ${scores[i]||0}`; scoreboardEl.appendChild(pill); } }
-  function renderScoreboardInline(showLabels){ let html=''; for(let i=0;i<chosenPlayers;i++){ html += `<div style="display:inline-block;padding:6px 10px;border-radius:999px;background:rgba(0,0,0,0.04);margin-right:6px;font-weight:700;color:${showLabels ? '#111' : '#111'}">${escapeHtml(playerNames[i] || ('P'+(i+1)))}: ${scores[i]||0}</div>`; } return html; }
+  function showWinnerAndAdvance(winner){
+    // winner may be null, a single index, or an array of indexes
+    const modal = document.createElement('div'); modal.className='modal-backdrop';
+    const card = document.createElement('div'); card.className='modal-card';
+    let html = `<div style="font-weight:900;font-size:1.2rem">Round results</div><div style="margin-top:8px;color:#444">`;
 
-  reshuffleBtn.addEventListener('click', ()=>{ generateWordMagnets(); setMessage('New word mix loaded for this round.'); });
+    if(winner === null){
+      html += `<div style="margin-bottom:8px">No clear winner this round.</div>`;
+    } else if(Array.isArray(winner)){
+      html += `<div style="margin-bottom:8px">Tie between: ${winner.map(i=>escapeHtml(playerNames[i]||('P'+(i+1)))).join(', ')}</div>`;
+    } else {
+      html += `<div style="margin-bottom:8px">Winner: ${escapeHtml(playerNames[winner]||('P'+(winner+1)))}</div>`;
+    }
 
-  function init(){
-    buildBigPool();
-    scores = loadScores().slice(0,4);
-    updateScoreboard();
-    applyTheme(chosenTheme);
-    openWizard();
+    html += `<div style="margin-top:10px;display:flex;gap:8px;justify-content:flex-end">
+      <div id="nextRoundBtn" class="jounty-tile">Next round</div>
+      <div id="endGameBtn" class="btn">End game</div>
+    </div>`;
+
+    card.innerHTML = html;
+    modal.appendChild(card);
+    document.body.appendChild(modal);
+
+    document.getElementById('nextRoundBtn').addEventListener('click', ()=>{
+      if(modal && modal.parentNode) modal.parentNode.removeChild(modal);
+      if(currentRound < totalRounds){
+        setMessage(`Starting round ${currentRound+1}...`);
+        generateWordMagnets();
+        setTimeout(()=>{ startRound(); }, 180);
+      } else {
+        // all rounds done
+        showFinalScores();
+      }
+    });
+
+    document.getElementById('endGameBtn').addEventListener('click', ()=>{
+      if(modal && modal.parentNode) modal.parentNode.removeChild(modal);
+      showFinalScores();
+    });
   }
 
-  window.buildBigPool = buildBigPool;
-  window.setupBoard = setupBoard;
+  function showFinalScores(){
+    const modal = document.createElement('div'); modal.className='modal-backdrop';
+    const card = document.createElement('div'); card.className='modal-card';
+    let html = `<div style="font-weight:900;font-size:1.2rem">Final scores</div><div style="margin-top:8px;color:#444">`;
+    const pairs = [];
+    for(let i=0;i<chosenPlayers;i++){
+      pairs.push({i,score:scores[i]||0});
+    }
+    pairs.sort((a,b)=>b.score-a.score);
+    pairs.forEach(p=>{
+      html += `<div style="margin-bottom:6px;font-weight:800">${escapeHtml(playerNames[p.i]||('P'+(p.i+1)))} — ${p.score} pts</div>`;
+    });
+    html += `<div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end">
+      <div id="playAgain" class="jounty-tile">Play again</div>
+      <div id="closeFinal" class="btn">Close</div>
+    </div>`;
+    card.innerHTML = html;
+    modal.appendChild(card);
+    document.body.appendChild(modal);
 
+    document.getElementById('playAgain').addEventListener('click', ()=>{
+      if(modal && modal.parentNode) modal.parentNode.removeChild(modal);
+      // reset scores and rounds
+      scores = [0,0,0,0];
+      saveScores(scores);
+      updateScoreboard();
+      currentRound = 0;
+      generateWordMagnets();
+      setMessage('New game ready. Press Start Game.');
+    });
+
+    document.getElementById('closeFinal').addEventListener('click', ()=>{
+      if(modal && modal.parentNode) modal.parentNode.removeChild(modal);
+      setMessage('Game ended.');
+    });
+  }
+
+  function makeMarkerDraggable(marker){
+    const el = marker.el; let dragging=false, offsetX=0, offsetY=0;
+    function onDown(e){ e.preventDefault(); dragging=true; el.style.zIndex=9999; const r=el.getBoundingClientRect(); offsetX=e.clientX-r.left; offsetY=e.clientY-r.top; try{ el.setPointerCapture(e.pointerId); }catch(e){} el.classList.add('dragging'); }
+    function onMove(e){ if(!dragging) return; e.preventDefault(); let x=e.clientX-offsetX; let y=e.clientY-offsetY; const playRect = playArea.getBoundingClientRect(); x = clamp(x, playRect.left, playRect.left + playRect.width - el.offsetWidth); y = clamp(y, playRect.top, playRect.top + playRect.height - el.offsetHeight); el.style.left = (x - playRect.left) + 'px'; el.style.top = (y - playRect.top) + 'px'; marker.x = x - playRect.left; marker.y = y - playRect.top; }
+    function onUp(e){ if(!dragging) return; dragging=false; el.style.zIndex=1; try{ el.releasePointerCapture(e.pointerId); }catch(e){} el.classList.remove('dragging'); }
+    el.addEventListener('pointerdown', onDown); window.addEventListener('pointermove', onMove); window.addEventListener('pointerup', onUp);
+  }
+
+  function updateScoreboard(){
+    scoreboardEl.innerHTML = '';
+    for(let i=0;i<chosenPlayers;i++){
+      const pill = document.createElement('div'); pill.className='score-pill'; pill.textContent = `${playerNames[i] || DEFAULT_PLAYER_NAMES[i]}: ${scores[i]||0}`;
+      pill.addEventListener('click', ()=>{ setMessage(`${playerNames[i]||DEFAULT_PLAYER_NAMES[i]} — ${scores[i]||0} pts`); });
+      scoreboardEl.appendChild(pill);
+    }
+  }
+
+  // UI wiring
+  reshuffleBtn.addEventListener('click', ()=>{
+    generateWordMagnets();
+    setMessage('New word mix generated.');
+  });
+
+  openNewGameBtn.addEventListener('click', ()=>{
+    renderInlineWizard();
+  });
+
+  // start game button (in top controls)
+  function renderStartButton(){
+    startGameWrap.innerHTML = '';
+    const btn = document.createElement('button'); btn.className='btn-primary'; btn.textContent='Start Round';
+    btn.addEventListener('click', ()=>{ startRound(); });
+    startGameWrap.appendChild(btn);
+  }
+
+  // initial setup
+  function init(){
+    applyTheme(chosenTheme);
+    updateScoreboard();
+    renderStartButton();
+    generateWordMagnets();
+    setMessage('Ready. Press New Game to configure players or Start Round to begin.');
+  }
+
+  // expose a small helper for emergency unblocking in console
+  window.mm_debug = {
+    clearStorage: ()=>{ localStorage.clear(); setMessage('localStorage cleared'); },
+    regen: ()=>{ BIG_POOL=null; generateWordMagnets(); setMessage('Pool regenerated'); }
+  };
+
+  // start
   init();
 
 })();
