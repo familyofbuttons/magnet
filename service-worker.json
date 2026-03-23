@@ -3,7 +3,7 @@
 // - Network-first for dynamic assets with cache fallback
 // - Offline fallback to index.html for navigation requests
 
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v8';
 const CACHE_NAME = `magnetic-mayhem-${CACHE_VERSION}`;
 const PRECACHE_URLS = [
   '/', 
