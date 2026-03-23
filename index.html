@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Magnetic Mayhem — Widescreen Optimized</title>
 
-<link rel="manifest" href="/magnet/manifest.json">
+<link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#ffb347">
-<link rel="icon" href="/magnet/pwa-icons/icon-192.png">
+<link rel="icon" href="pwa-icons/icon-192.png">
 
 <style>
   *{box-sizing:border-box}
@@ -29,6 +29,8 @@
     background: var(--bg-dark);
     color: var(--muted);
     overflow: hidden;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
   }
 
   .container{
@@ -82,6 +84,7 @@
     border:1px solid rgba(255,255,255,0.04);
     color:var(--muted);
     cursor:pointer;
+    user-select:none;
   }
 
   .btn-primary{
@@ -103,6 +106,7 @@
     border:1px solid rgba(255,255,255,0.02);
     background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.00));
     padding:8px;
+    -webkit-overflow-scrolling: touch;
   }
 
   .word-magnet{
@@ -120,21 +124,9 @@
     align-items:center;
     gap:8px;
     font-size:1rem;
-  }
-
-  .modal-magnet{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    padding:6px 10px;
-    margin:4px;
-    border-radius:10px;
-    background:#fff;
-    color:#111;
-    font-weight:800;
-    border:1px solid rgba(0,0,0,0.06);
-    box-shadow:0 8px 20px rgba(0,0,0,0.25);
-    font-size:0.9rem;
+    touch-action: none;
+    -webkit-user-drag: none;
+    -webkit-touch-callout: none;
   }
 
   .play-area{
@@ -161,6 +153,9 @@
     box-shadow:0 12px 36px rgba(0,0,0,0.6);
     user-select:none;
     overflow:hidden;
+    touch-action: none;
+    -webkit-user-drag: none;
+    -webkit-touch-callout: none;
   }
 
   .marker-p1{background:var(--p1)}
@@ -197,7 +192,7 @@
     box-shadow:0 20px 60px rgba(0,0,0,0.7);
   }
 
-  /* --- JAUNTY TILES (restored to original look) --- */
+  /* --- JAUNTY TILES (restored) --- */
   .jounty-row{
     display:flex;
     gap:12px;
@@ -222,6 +217,7 @@
     align-items:center;
     justify-content:center;
     text-align:center;
+    user-select:none;
   }
 
   .jounty-tile.selected{
@@ -291,6 +287,8 @@
   .player-highlight.p3{ outline: 4px solid rgba(76,217,100,0.18); }
   .player-highlight.p4{ outline: 4px solid rgba(255,217,59,0.18); }
 
+  /* prevent page scroll while dragging on some devices */
+  body.dragging-touch { overflow: hidden; touch-action: none; }
 </style>
 </head>
 <body>
@@ -351,66 +349,6 @@ const SCORE_KEY = 'mm_scores_jounty';
 const POOL_SIZE = 10000;
 const ROUND_WORD_COUNT = 200;
 const VISIBLE_MAGNETS = 300;
-
-const COMMON_WORDS = [
-  'and','and','and',
-  'it','it',
-  'was','was','was',
-  'has','had','because',
-  'a','a','an',
-  'the','the','the',
-  'to','to','to',
-  'of','of',
-  'in','on','at','by','with',
-  'her','him','she','he','they','them','we','you','I',
-  'this','that','these','those',
-  'is','are','be','been','have','had',
-  '.', ',', '?', '!',
-  'georgie','leslie','beverley','allen','gray','mandy','moany',
-  'casey','port talbot','swansea','wales','england','reading','swindon','america','australia'
-];
-
-const DEFAULT_PLAYER_NAMES = ['Player 1','Player 2','Player 3','Player 4'];
-
-let wizardStep = 0;
-let chosenPlayers = 3;
-let chosenTime = 60;
-let chosenRounds = 2;
-let chosenTheme = 'dark';
-
-let uploadedImages = [null,null,null,null];
-let playerNames = DEFAULT_PLAYER_NAMES.slice();
-
-let BIG_POOL = null;
-let magnets = [];
-let markers = [];
-let magnetId = 1;
-
-let roundActive = false;
-let timer = null;
-let timeLeft = 60;
-let currentRound = 0;
-let totalRounds = 2;
-let scores = [0,0,0,0];
-
-function $(s,ctx=document){return ctx.querySelector(s)}
-function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
-function rand(min,max){return Math.random()*(max-min)+min}
-function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}}
-function setMessage(t){ messageEl.textContent = t }
-function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-const wizard = document.getElementById('wizard');
-const wizardCard = document.getElementById('wizardCard');
-const wordBank = document.getElementById('wordBank');
-const playArea = document.getElementById('playArea');
-const reshuffleBtn = document.getElementById('reshuffle');
-const timerDisplay = document.getElementById('timerDisplay');
-const timerBar = document.getElementById('timerBar');
-const messageEl = document.getElementById('message');
-const startGameWrap = document.getElementById('startGameWrap');
-const scoreboardEl = document.getElementById('scoreboard');
-const themeLabel = document.getElementById('themeLabel');
 const SENSIBLE_PHRASES = [
   "chicken nugget","starbucks coffee","french toast","cheese grater","coffee shop","train station",
   "post office","phone charger","garden gate","garden shed","movie theater","bus stop","school bus",
@@ -950,7 +888,7 @@ function generateWordMagnets(){
 
   // Add a small number of explicit connector repeats to guarantee multiple connecting words but not too many
   for(let c of CONNECTORS){
-    if(Math.random() < 0.6){
+    if(Math.random() < 0.5){
       chosen.push(c);
     }
   }
@@ -958,8 +896,7 @@ function generateWordMagnets(){
   // Add more 'things' (nouns/items) to increase variety
   const things = ["cat","dog","potato","nipple","frog","hammer","guitar","plant","pot","dressing","gown","pizza","glitter","cheese","pants","jumper","kettle","pills","drugs","music","bath","soap","tree","flower","watch","alexa","bleach","car","bus","train","plane"];
   for(let t of things){
-    // add some randomly so pool varies
-    if(Math.random() < 0.9) chosen.push(t);
+    if(Math.random() < 0.85) chosen.push(t);
   }
 
   // Fill up to ROUND_WORD_COUNT with random picks (allow duplicates)
@@ -1006,28 +943,46 @@ function generateWordMagnets(){
     makeMagnetDraggable(magnet);
   }
 }
-// --- DRAGGING LOGIC ---------------------------------------------------------
-
+// --- DRAGGING LOGIC (pointer + touch friendly) -----------------------------
 function makeMagnetDraggable(magnet){
   const el = magnet.el;
-  let dragging=false, offsetX=0, offsetY=0;
+  let dragging=false, offsetX=0, offsetY=0, activePointerId = null;
 
-  function onDown(e){
-    e.preventDefault();
-    dragging=true;
+  function startDrag(clientX, clientY, pointerId){
+    dragging = true;
+    activePointerId = pointerId || null;
     el.style.zIndex = 9999;
+    document.body.classList.add('dragging-touch');
 
     const r = el.getBoundingClientRect();
-    offsetX = e.clientX - r.left;
-    offsetY = e.clientY - r.top;
+    offsetX = clientX - r.left;
+    offsetY = clientY - r.top;
 
-    try{ el.setPointerCapture(e.pointerId); }catch(e){}
     el.classList.add('dragging');
     wordBank.classList.add('drag-over-candidate');
   }
 
-  function onMove(e){
+  function endDrag(){
     if(!dragging) return;
+    dragging = false;
+    activePointerId = null;
+    el.style.zIndex = 1;
+    el.classList.remove('dragging');
+    wordBank.classList.remove('drag-over');
+    wordBank.classList.remove('drag-over-candidate');
+    document.body.classList.remove('dragging-touch');
+  }
+
+  function onPointerDown(e){
+    if(e.pointerType === 'mouse' && e.button !== 0) return;
+    e.preventDefault();
+    try{ el.setPointerCapture(e.pointerId); }catch(err){}
+    startDrag(e.clientX, e.clientY, e.pointerId);
+  }
+
+  function onPointerMove(e){
+    if(!dragging) return;
+    if(activePointerId !== null && e.pointerId !== activePointerId) return;
     e.preventDefault();
 
     let x = e.clientX - offsetX;
@@ -1039,14 +994,13 @@ function makeMagnetDraggable(magnet){
     x = clamp(x, 0, vw - el.offsetWidth);
     y = clamp(y, 0, vh - el.offsetHeight);
 
-    el.style.left = x + 'px';
-    el.style.top = y + 'px';
-
     if(!magnet._absolute){
       magnet._absolute = true;
       document.body.appendChild(el);
     }
 
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
     magnet.x = x;
     magnet.y = y;
 
@@ -1059,16 +1013,10 @@ function makeMagnetDraggable(magnet){
     }
   }
 
-  function onUp(e){
-    if(!dragging) return;
-    dragging=false;
-
-    el.style.zIndex = 1;
-    try{ el.releasePointerCapture(e.pointerId); }catch(e){}
-    el.classList.remove('dragging');
-    wordBank.classList.remove('drag-over');
-    wordBank.classList.remove('drag-over-candidate');
-
+  function onPointerUp(e){
+    if(activePointerId !== null && e.pointerId !== activePointerId) return;
+    try{ el.releasePointerCapture(e.pointerId); }catch(err){}
+    // compute center and decide playArea vs wordBank placement
     const centerX = magnet.x + el.offsetWidth/2;
     const centerY = magnet.y + el.offsetHeight/2;
 
@@ -1089,6 +1037,7 @@ function makeMagnetDraggable(magnet){
       el.style.left = magnet.x + 'px';
       el.style.top = magnet.y + 'px';
       magnet._absolute = false;
+      endDrag();
       return;
     }
 
@@ -1106,6 +1055,7 @@ function makeMagnetDraggable(magnet){
       el.style.left = x + 'px';
       el.style.top = y + 'px';
       magnet._absolute = false;
+      endDrag();
       return;
     }
 
@@ -1130,32 +1080,97 @@ function makeMagnetDraggable(magnet){
       el.style.top = y + 'px';
       magnet._absolute = false;
     }
+    endDrag();
   }
 
-  el.addEventListener('pointerdown', onDown);
-  window.addEventListener('pointermove', onMove);
-  window.addEventListener('pointerup', onUp);
+  // Touch fallback
+  function onTouchStart(ev){
+    if(ev.touches && ev.touches.length){
+      const t = ev.touches[0];
+      ev.preventDefault();
+      startDrag(t.clientX, t.clientY, 'touch');
+    }
+  }
+  function onTouchMove(ev){
+    if(!dragging) return;
+    if(ev.touches && ev.touches.length){
+      const t = ev.touches[0];
+      ev.preventDefault();
+      let x = t.clientX - offsetX;
+      let y = t.clientY - offsetY;
+
+      const vw = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+      const vh = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+
+      x = clamp(x, 0, vw - el.offsetWidth);
+      y = clamp(y, 0, vh - el.offsetHeight);
+
+      if(!magnet._absolute){
+        magnet._absolute = true;
+        document.body.appendChild(el);
+      }
+
+      el.style.left = x + 'px';
+      el.style.top = y + 'px';
+      magnet.x = x;
+      magnet.y = y;
+
+      const bankRect = wordBank.getBoundingClientRect();
+      if(t.clientX >= bankRect.left && t.clientX <= bankRect.right &&
+         t.clientY >= bankRect.top && t.clientY <= bankRect.bottom){
+        wordBank.classList.add('drag-over');
+      } else {
+        wordBank.classList.remove('drag-over');
+      }
+    }
+  }
+  function onTouchEnd(ev){
+    if(!dragging) return;
+    ev.preventDefault();
+    // call pointer up logic
+    onPointerUp({ pointerId: activePointerId });
+  }
+
+  el.addEventListener('pointerdown', onPointerDown, { passive: false });
+  window.addEventListener('pointermove', onPointerMove, { passive: false });
+  window.addEventListener('pointerup', onPointerUp, { passive: false });
+
+  el.addEventListener('touchstart', onTouchStart, { passive: false });
+  window.addEventListener('touchmove', onTouchMove, { passive: false });
+  window.addEventListener('touchend', onTouchEnd, { passive: false });
+  window.addEventListener('touchcancel', onTouchEnd, { passive: false });
 }
 
-// --- MARKER DRAGGING --------------------------------------------------------
-
+// --- MARKER DRAGGING (pointer + touch friendly) -----------------------------
 function makeMarkerDraggable(marker){
   const el = marker.el;
-  let dragging=false, offsetX=0, offsetY=0;
+  let dragging=false, offsetX=0, offsetY=0, activePointerId = null;
 
-  function onDown(e){
-    e.preventDefault();
-    dragging=true;
-
+  function startDrag(clientX, clientY, pointerId){
+    dragging = true;
+    activePointerId = pointerId || null;
+    document.body.classList.add('dragging-touch');
     const r = el.getBoundingClientRect();
-    offsetX = e.clientX - r.left;
-    offsetY = e.clientY - r.top;
-
-    try{ el.setPointerCapture(e.pointerId); }catch(e){}
+    offsetX = clientX - r.left;
+    offsetY = clientY - r.top;
   }
 
-  function onMove(e){
+  function endDrag(){
+    dragging = false;
+    activePointerId = null;
+    document.body.classList.remove('dragging-touch');
+  }
+
+  function onPointerDown(e){
+    if(e.pointerType === 'mouse' && e.button !== 0) return;
+    e.preventDefault();
+    try{ el.setPointerCapture(e.pointerId); }catch(err){}
+    startDrag(e.clientX, e.clientY, e.pointerId);
+  }
+
+  function onPointerMove(e){
     if(!dragging) return;
+    if(activePointerId !== null && e.pointerId !== activePointerId) return;
     e.preventDefault();
 
     const playRect = playArea.getBoundingClientRect();
@@ -1172,20 +1187,55 @@ function makeMarkerDraggable(marker){
     el.style.top = y + 'px';
   }
 
-  function onUp(e){
-    if(!dragging) return;
-    dragging=false;
-    try{ el.releasePointerCapture(e.pointerId); }catch(e){}
+  function onPointerUp(e){
+    if(activePointerId !== null && e.pointerId !== activePointerId) return;
+    try{ el.releasePointerCapture(e.pointerId); }catch(err){}
+    endDrag();
   }
 
-  el.addEventListener('pointerdown', onDown);
-  el.addEventListener('pointermove', onMove);
-  el.addEventListener('pointerup', onUp);
-  el.addEventListener('pointercancel', onUp);
+  function onTouchStart(ev){
+    if(ev.touches && ev.touches.length){
+      const t = ev.touches[0];
+      ev.preventDefault();
+      startDrag(t.clientX, t.clientY, 'touch');
+    }
+  }
+  function onTouchMove(ev){
+    if(!dragging) return;
+    if(ev.touches && ev.touches.length){
+      const t = ev.touches[0];
+      ev.preventDefault();
+      const playRect = playArea.getBoundingClientRect();
+      let x = t.clientX - playRect.left - offsetX;
+      let y = t.clientY - playRect.top - offsetY;
+
+      x = clamp(x, 0, playRect.width - el.offsetWidth);
+      y = clamp(y, 0, playRect.height - el.offsetHeight);
+
+      marker.x = x;
+      marker.y = y;
+
+      el.style.left = x + 'px';
+      el.style.top = y + 'px';
+    }
+  }
+  function onTouchEnd(ev){
+    if(!dragging) return;
+    ev.preventDefault();
+    endDrag();
+  }
+
+  el.addEventListener('pointerdown', onPointerDown, { passive: false });
+  window.addEventListener('pointermove', onPointerMove, { passive: false });
+  window.addEventListener('pointerup', onPointerUp, { passive: false });
+
+  el.addEventListener('touchstart', onTouchStart, { passive: false });
+  window.addEventListener('touchmove', onTouchMove, { passive: false });
+  window.addEventListener('touchend', onTouchEnd, { passive: false });
+  window.addEventListener('touchcancel', onTouchEnd, { passive: false });
 }
 
 // --- ROUND FLOW -------------------------------------------------------------
-
 function startRound(){
   if(roundActive) return;
 
@@ -1373,9 +1423,6 @@ function openRatingsModal(){
   for(let p=0;p<chosenPlayers;p++){
     const sentences = sentencesByPlayer[p] || [];
     const name = escapeHtml(playerNames[p] || ('P'+(p+1)));
-
-    // determine highlight class based on marker color
-    const pClass = 'p' + (p+1);
 
     html += `<div class="rating-row" data-player="${p}" style="padding:10px;border-radius:10px">`;
 
