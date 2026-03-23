@@ -2,23 +2,27 @@
   "name": "Magnetic Mayhem",
   "short_name": "Magnetic",
   "description": "Drag magnets, park your marker, build sentences and rate the chaos.",
-  "start_url": "/?source=pwa",
+  "start_url": "/magnet/?source=pwa",
   "scope": "/magnet/",
   "display": "standalone",
   "orientation": "landscape",
   "background_color": "#06070a",
   "theme_color": "#ffb347",
-  "categories": ["games", "puzzle"],
-  "lang": "en-US",
   "icons": [
     {
-      "src": "/pwa-icons/icon-192.png",
+      "src": "/magnet/pwa-icons/icon-152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/magnet/pwa-icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/pwa-icons/icon-512.png",
+      "src": "/magnet/pwa-icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
