@@ -231,6 +231,10 @@
   .player-highlight.p4{ outline: 4px solid rgba(255,217,59,0.18); }
 
   body.dragging-touch { overflow: hidden; touch-action: none; }
+
+  /* minimal modal styles (keeps visuals consistent with existing UI) */
+  .modal-backdrop{ position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.6); z-index:10200; }
+  .modal-card{ width:92%; max-width:720px; border-radius:12px; padding:18px; background:#fff; color:#111; box-shadow:0 30px 80px rgba(0,0,0,0.45); border:1px solid rgba(0,0,0,0.06); }
 </style>
 </head>
 <body>
@@ -499,6 +503,9 @@ function generateWordMagnets(force){
     el.style.left = x + 'px';
     el.style.top = y + 'px';
     el.style.transform = `rotate(${angle}deg) scale(${scale})`;
+
+    // ensure clicks on the magnet itself don't bubble up
+    el.addEventListener('click', (ev)=>{ ev.stopPropagation(); }, { passive: true });
 
     wordBank.appendChild(el);
 
@@ -942,49 +949,138 @@ function openRatingsModal(){
 
   const modal = document.createElement('div'); modal.className='modal-backdrop';
   const card = document.createElement('div'); card.className='modal-card';
-  let html = `<div style="display:flex;justify-content:space-between;align-items:center"><div style="font-weight:900;font-size:1.2rem">Rate the chaos</div><div style="font-size:0.9rem;color:#666">Round ${currentRound}/${totalRounds}</div></div><div style="margin-top:8px;font-size:0.95rem;color:#444">Review each player’s sentences and give them a score for this round.</div><div class="rating-grid" style="margin-top:12px">`;
+
+  let html = `<div style="display:flex;justify-content:space-between;align-items:center">
+      <div style="font-weight:900;font-size:1.2rem">Rate the chaos</div>
+      <div style="font-size:0.9rem;color:#666">Round ${currentRound}/${totalRounds}</div>
+    </div>
+    <div style="margin-top:8px;font-size:0.95rem;color:#444">Review each player’s sentences and give them a score for this round.</div>
+    <div class="rating-grid" style="margin-top:12px">`;
+
   for(let p=0;p<chosenPlayers;p++){
     const sentences = sentencesByPlayer[p] || [];
     const name = escapeHtml(playerNames[p] || ('P'+(p+1)));
+
     html += `<div class="rating-row" data-player="${p}" style="padding:10px;border-radius:10px">`;
-    html += `<div style="flex:1;min-width:0"><div style="font-weight:800;margin-bottom:6px">${name}</div>`;
-    if(sentences.length === 0) html += `<div style="font-size:0.85rem;color:#666">No sentences.</div>`;
-    else {
-      sentences.forEach(s=>{ html += `<div style="margin-bottom:8px;display:flex;flex-wrap:wrap;align-items:center">`; s.magnets.forEach(m=>{ html += `<span class="modal-magnet">${escapeHtml(m.text)}</span>`; }); html += `</div>`; });
+
+    html += `<div style="flex:1;min-width:0">
+      <div style="font-weight:800;margin-bottom:6px">${name}</div>`;
+
+    if(sentences.length === 0){
+      html += `<div style="font-size:0.85rem;color:#666">No sentences.</div>`;
+    } else {
+      sentences.forEach(s=>{
+        html += `<div style="margin-bottom:8px;display:flex;flex-wrap:wrap;align-items:center">`;
+        s.magnets.forEach(m=>{
+          html += `<span class="modal-magnet">${escapeHtml(m.text)}</span>`;
+        });
+        html += `</div>`;
+      });
     }
+
     html += `</div>`;
-    html += `<div class="rating-controls" data-player="${p}"><div class="rating-note">Round score</div><div style="display:flex;gap:6px">`;
-    for(let score=1;score<=5;score++) html += `<button class="pill" data-player="${p}" data-score="${score}">${score}</button>`;
+
+    html += `<div class="rating-controls" data-player="${p}">
+      <div class="rating-note">Round score</div>
+      <div style="display:flex;gap:6px">`;
+    for(let score=1;score<=5;score++){
+      html += `<button class="pill" data-player="${p}" data-score="${score}">${score}</button>`;
+    }
     html += `</div></div></div>`;
   }
-  html += `</div><div style="display:flex;justify-content:flex-end;margin-top:16px;gap:10px"><button id="ratingsCancel" class="btn">Skip ratings</button><div id="ratingsSubmit" class="jounty-tile">Submit ratings</div></div>`;
-  card.innerHTML = html; modal.appendChild(card); document.body.appendChild(modal);
 
-  for(let p=0;p<chosenPlayers;p++){ const row = card.querySelector(`.rating-row[data-player="${p}"]`); if(row){ row.classList.add('player-highlight'); row.classList.add('p' + (p+1)); } }
+  html += `</div>
+    <div style="display:flex;justify-content:flex-end;margin-top:16px;gap:10px">
+      <button id="ratingsCancel" class="btn">Skip ratings</button>
+      <div id="ratingsSubmit" class="jounty-tile">Submit ratings</div>
+    </div>`;
+
+  card.innerHTML = html;
+  modal.appendChild(card);
+  document.body.appendChild(modal);
+
+  // visually add player color highlights to rating rows (pre-submit)
+  for(let p=0;p<chosenPlayers;p++){
+    const row = card.querySelector(`.rating-row[data-player="${p}"]`);
+    if(row){
+      row.classList.add('player-highlight');
+      row.classList.add('p' + (p+1));
+    }
+  }
 
   const ratingsMap = {};
-  card.querySelectorAll('.pill').forEach(btn=>{ btn.addEventListener('click', (ev)=>{ const b = ev.currentTarget; const player = parseInt(b.dataset.player, 10); const score = parseInt(b.dataset.score, 10); ratingsMap[player] = score; card.querySelectorAll(`.pill[data-player="${player}"]`).forEach(p=>p.classList.remove('selected')); b.classList.add('selected'); }); });
+
+  card.querySelectorAll('.pill').forEach(btn=>{
+    btn.addEventListener('click', (ev)=>{
+      const b = ev.currentTarget;
+      const player = parseInt(b.dataset.player, 10);
+      const score = parseInt(b.dataset.score, 10);
+      ratingsMap[player] = score;
+      card.querySelectorAll(`.pill[data-player="${player}"]`).forEach(p=>p.classList.remove('selected'));
+      b.classList.add('selected');
+    });
+  });
 
   const submitBtn = card.querySelector('#ratingsSubmit');
   const cancelBtn = card.querySelector('#ratingsCancel');
 
   submitBtn.addEventListener('click', ()=>{
     const deltas = Array.from({length: chosenPlayers}, ()=>0);
-    Object.keys(ratingsMap).forEach(k=>{ const idx = parseInt(k,10); deltas[idx] = ratingsMap[idx] || 0; });
+    Object.keys(ratingsMap).forEach(k=>{
+      const idx = parseInt(k,10);
+      deltas[idx] = ratingsMap[idx] || 0;
+    });
+
     const anyRated = deltas.some(d => d !== 0);
-    if(!anyRated){ setMessage('No ratings given — skipping scoring for this round.'); if(modal && modal.parentNode) modal.parentNode.removeChild(modal); showWinnerAndAdvance(null); return; }
-    for(let i=0;i<chosenPlayers;i++) scores[i] = (scores[i] || 0) + (deltas[i] || 0);
-    let max = -Infinity; for(let i=0;i<chosenPlayers;i++) if(deltas[i] > max) max = deltas[i];
-    const topIndexes = []; for(let i=0;i<chosenPlayers;i++) if(deltas[i] === max && max > 0) topIndexes.push(i);
-    if(topIndexes.length > 1) topIndexes.forEach(i => { scores[i] = (scores[i] || 0) + max; });
-    saveScores(scores); updateScoreboard();
+    if(!anyRated){
+      setMessage('No ratings given — skipping scoring for this round.');
+      if(modal && modal.parentNode) modal.parentNode.removeChild(modal);
+      showWinnerAndAdvance(null);
+      return;
+    }
+
+    for(let i=0;i<chosenPlayers;i++){
+      scores[i] = (scores[i] || 0) + (deltas[i] || 0);
+    }
+
+    let max = -Infinity;
+    for(let i=0;i<chosenPlayers;i++) if(deltas[i] > max) max = deltas[i];
+    const topIndexes = [];
+    for(let i=0;i<chosenPlayers;i++){
+      if(deltas[i] === max && max > 0) topIndexes.push(i);
+    }
+
+    if(topIndexes.length > 1){
+      topIndexes.forEach(i => { scores[i] = (scores[i] || 0) + max; });
+    }
+
+    saveScores(scores);
+    updateScoreboard();
+
     if(modal && modal.parentNode) modal.parentNode.removeChild(modal);
-    if(topIndexes.length > 1) showWinnerAndAdvance(topIndexes); else if(topIndexes.length === 1) showWinnerAndAdvance(topIndexes[0]); else showWinnerAndAdvance(null);
+
+    if(topIndexes.length > 1){
+      showWinnerAndAdvance(topIndexes);
+    } else if(topIndexes.length === 1){
+      showWinnerAndAdvance(topIndexes[0]);
+    } else {
+      showWinnerAndAdvance(null);
+    }
   });
 
-  cancelBtn.addEventListener('click', ()=>{ setMessage('Ratings skipped. No score changes this round.'); if(modal && modal.parentNode) modal.parentNode.removeChild(modal); showWinnerAndAdvance(null); });
+  cancelBtn.addEventListener('click', ()=>{
+    setMessage('Ratings skipped. No score changes this round.');
+    if(modal && modal.parentNode) modal.parentNode.removeChild(modal);
+    showWinnerAndAdvance(null);
+  });
 
-  function onKey(e){ if(e.key === 'Escape'){ if(modal && modal.parentNode) modal.parentNode.removeChild(modal); window.removeEventListener('keydown', onKey); showWinnerAndAdvance(null); } }
+  function onKey(e){
+    if(e.key === 'Escape'){
+      if(modal && modal.parentNode) modal.parentNode.removeChild(modal);
+      window.removeEventListener('keydown', onKey);
+      showWinnerAndAdvance(null);
+    }
+  }
   window.addEventListener('keydown', onKey);
 }
 
@@ -992,39 +1088,92 @@ function openRatingsModal(){
    scoring & round advance
    ------------------------- */
 function showWinnerAndAdvance(winnerData){
-  const modal = document.createElement('div'); modal.className='modal-backdrop';
-  const card = document.createElement('div'); card.className='modal-card';
+  const modal = document.createElement('div');
+  modal.className = 'modal-backdrop';
+  const card = document.createElement('div');
+  card.className = 'modal-card';
+
   let title = `Round ${currentRound}/${totalRounds} complete`;
   let body = '';
-  if(winnerData == null) body += `<div style="margin-top:8px;font-size:0.95rem;color:#444">No ratings this round.</div>`;
-  else if(Array.isArray(winnerData) && winnerData.length > 1){ const names = winnerData.map(i => escapeHtml(playerNames[i] || ('P'+(i+1)))); const list = names.join(' and '); body += `<div style="margin-top:8px;font-size:1rem">Draw — ${list} each get +${scores[winnerData[0]]}</div>`; }
-  else { const idx = Array.isArray(winnerData) ? winnerData[0] : winnerData; const wName = escapeHtml(playerNames[idx] || ('P'+(idx+1))); body += `<div style="margin-top:8px;font-size:1rem">${wName} won that round</div>`; }
-  const isLastRound = currentRound >= totalRounds;
-  body += `<div style="margin-top:14px;font-size:0.9rem;color:#555">${isLastRound ? 'That was the final round.' : 'Get ready for the next round.'}</div><div style="display:flex;justify-content:flex-end;margin-top:14px;gap:8px">${isLastRound ? '<div id="roundFinalScores" class="jounty-tile">View final scores</div>' : '<div id="roundNext" class="jounty-tile">Next round</div>'}<button id="roundClose" class="btn">Close</button></div>`;
-  card.innerHTML = `<div style="font-weight:900;font-size:1.2rem">${title}</div>${body}`;
-  modal.appendChild(card); document.body.appendChild(modal);
 
+  if(winnerData == null){
+    body += `<div style="margin-top:8px;font-size:0.95rem;color:#444">No ratings this round.</div>`;
+  } else if(Array.isArray(winnerData) && winnerData.length > 1){
+    const names = winnerData.map(i => escapeHtml(playerNames[i] || ('P'+(i+1))));
+    const list = names.join(' and ');
+    body += `<div style="margin-top:8px;font-size:1rem">Draw — ${list} each get +${scores[winnerData[0]]}</div>`;
+  } else {
+    const idx = Array.isArray(winnerData) ? winnerData[0] : winnerData;
+    const wName = escapeHtml(playerNames[idx] || ('P'+(idx+1)));
+    body += `<div style="margin-top:8px;font-size:1rem">${wName} won that round</div>`;
+  }
+
+  const isLastRound = currentRound >= totalRounds;
+
+  body += `<div style="margin-top:14px;font-size:0.9rem;color:#555">${isLastRound ? 'That was the final round.' : 'Get ready for the next round.'}</div>
+    <div style="display:flex;justify-content:flex-end;margin-top:14px;gap:8px">
+      ${isLastRound ? '<div id="roundFinalScores" class="jounty-tile">View final scores</div>' : '<div id="roundNext" class="jounty-tile">Next round</div>'}
+      <button id="roundClose" class="btn">Close</button>
+    </div>`;
+
+  card.innerHTML = `<div style="font-weight:900;font-size:1.2rem">${title}</div>${body}`;
+  modal.appendChild(card);
+  document.body.appendChild(modal);
+
+  // highlight winner(s) visually on the modal
   if(winnerData != null){
     const winners = Array.isArray(winnerData) ? winnerData : [winnerData];
-    winners.forEach(wi=>{ const tile = document.createElement('div'); tile.className = 'jounty-tile player-highlight p' + (wi+1); tile.style.marginTop = '12px'; tile.style.display = 'inline-block'; tile.textContent = (playerNames[wi] || ('P'+(wi+1))) + ' — +' + (scores[wi]||0); card.appendChild(tile); });
+    winners.forEach(wi=>{
+      const tile = document.createElement('div');
+      tile.className = 'jounty-tile player-highlight p' + (wi+1);
+      tile.style.marginTop = '12px';
+      tile.style.display = 'inline-block';
+      tile.textContent = (playerNames[wi] || ('P'+(wi+1))) + ' — +' + (scores[wi]||0);
+      card.appendChild(tile);
+    });
   }
+
+  const closeModal = ()=>{ if(modal && modal.parentNode) modal.parentNode.removeChild(modal); };
 
   const nextBtn = card.querySelector('#roundNext');
   const finalBtn = card.querySelector('#roundFinalScores');
   const closeBtn = card.querySelector('#roundClose');
 
-  if(nextBtn) nextBtn.addEventListener('click', ()=>{ if(modal && modal.parentNode) modal.parentNode.removeChild(modal); resetForNextRound(); });
-  if(finalBtn) finalBtn.addEventListener('click', ()=>{ if(modal && modal.parentNode) modal.parentNode.removeChild(modal); showFinalResults(); });
-  if(closeBtn) closeBtn.addEventListener('click', ()=>{ if(modal && modal.parentNode) modal.parentNode.removeChild(modal); if(!isLastRound) resetForNextRound(); else showFinalResults(); });
+  if(nextBtn){
+    nextBtn.addEventListener('click', ()=>{
+      closeModal();
+      resetForNextRound();
+    });
+  }
+  if(finalBtn){
+    finalBtn.addEventListener('click', ()=>{
+      closeModal();
+      showFinalResults();
+    });
+  }
+  if(closeBtn){
+    closeBtn.addEventListener('click', ()=>{
+      closeModal();
+      if(!isLastRound) resetForNextRound(); else showFinalResults();
+    });
+  }
 
-  function onKey(e){ if(e.key==='Escape'){ if(modal && modal.parentNode) modal.parentNode.removeChild(modal); window.removeEventListener('keydown', onKey); if(!isLastRound) resetForNextRound(); else showFinalResults(); } }
+  function onKey(e){
+    if(e.key==='Escape'){
+      closeModal();
+      window.removeEventListener('keydown', onKey);
+      if(!isLastRound) resetForNextRound(); else showFinalResults();
+    }
+  }
   window.addEventListener('keydown', onKey);
 }
 
 function resetForNextRound(){
   roundActive = false;
+
   magnets.forEach(m=>{ if(m.el) m.el.style.pointerEvents = 'auto'; });
   markers.forEach(m=>{ if(m.el) m.el.style.pointerEvents = 'auto'; });
+
   if(currentRound < totalRounds){
     regenerateWordPool();
     timeLeft = chosenTime;
@@ -1040,26 +1189,61 @@ function resetForNextRound(){
 }
 
 function showFinalResults(){
-  const modal = document.createElement('div'); modal.className='modal-backdrop';
-  const card = document.createElement('div'); card.className='modal-card';
-  card.innerHTML = `<div style="font-weight:900;font-size:1.2rem">Game Over — Final Scores</div><div style="margin-top:12px">${renderScoreboardInline(true)}</div><div style="display:flex;justify-content:flex-end;margin-top:14px;gap:8px"><div id="finalRestart" class="jounty-tile">New Game</div><div id="finalClose" class="btn">Close</div></div>`;
-  modal.appendChild(card); document.body.appendChild(modal);
+  const modal = document.createElement('div');
+  modal.className = 'modal-backdrop';
+  const card = document.createElement('div');
+  card.className = 'modal-card';
+
+  card.innerHTML = `<div style="font-weight:900;font-size:1.2rem">Game Over — Final Scores</div>
+    <div style="margin-top:12px">${renderScoreboardInline(true)}</div>
+    <div style="display:flex;justify-content:flex-end;margin-top:14px;gap:8px">
+      <div id="finalRestart" class="jounty-tile">New Game</div>
+      <div id="finalClose" class="btn">Close</div>
+    </div>`;
+
+  modal.appendChild(card);
+  document.body.appendChild(modal);
 
   function doFullReset(){
-    try{ document.querySelectorAll('.modal-backdrop').forEach(n=>{ if(n && n.parentNode) n.parentNode.removeChild(n); }); }catch(e){}
-    saveScores(scores); updateScoreboard();
-    currentRound = 0; totalRounds = chosenRounds;
-    clearBoard(); renderStartButton();
+    try{
+      document.querySelectorAll('.modal-backdrop').forEach(n=>{
+        if(n && n.parentNode) n.parentNode.removeChild(n);
+      });
+    }catch(e){}
+
+    saveScores(scores);
+    updateScoreboard();
+
+    currentRound = 0;
+    totalRounds = chosenRounds;
+
+    clearBoard();
+    renderStartButton();
+
     setMessage('Game reset. Opening setup wizard...');
     setTimeout(()=>{ openWizard(); }, 80);
   }
 
   const restartBtn = card.querySelector('#finalRestart');
-  if(restartBtn) restartBtn.addEventListener('click',(ev)=>{ ev.preventDefault(); if(modal && modal.parentNode) modal.parentNode.removeChild(modal); doFullReset(); });
-  const closeBtn = card.querySelector('#finalClose');
-  if(closeBtn) closeBtn.addEventListener('click',(ev)=>{ ev.preventDefault(); if(modal && modal.parentNode) modal.parentNode.removeChild(modal); setMessage('Final scores shown. Press New Game to start again.'); });
+  if(restartBtn) restartBtn.addEventListener('click',(ev)=>{
+    ev.preventDefault();
+    if(modal && modal.parentNode) modal.parentNode.removeChild(modal);
+    doFullReset();
+  });
 
-  function onKey(e){ if(e.key==='Escape'){ if(modal && modal.parentNode) modal.parentNode.removeChild(modal); window.removeEventListener('keydown', onKey); } }
+  const closeBtn = card.querySelector('#finalClose');
+  if(closeBtn) closeBtn.addEventListener('click',(ev)=>{
+    ev.preventDefault();
+    if(modal && modal.parentNode) modal.parentNode.removeChild(modal);
+    setMessage('Final scores shown. Press New Game to start again.');
+  });
+
+  function onKey(e){
+    if(e.key==='Escape'){
+      if(modal && modal.parentNode) modal.parentNode.removeChild(modal);
+      window.removeEventListener('keydown', onKey);
+    }
+  }
   window.addEventListener('keydown', onKey);
 }
 
