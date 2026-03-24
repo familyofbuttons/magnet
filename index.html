@@ -1901,7 +1901,6 @@ document.addEventListener('click', function finishSetupBinder(e){
         renderStartButton();
         generateWordMagnets();
 
-        setTimeout(()=>{ window.dispatchEvent(new Event('resize')); }, 60);
 
         setMessage('Game ready. Press Start Game to begin round 1.');
       }catch(err){
