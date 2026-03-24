@@ -1083,15 +1083,14 @@ function makeMarkerDraggable(marker){
   window.addEventListener('pointermove', onPointerMove, { passive: false });
   window.addEventListener('pointerup', onPointerUp, { passive: false });
 
-  el.addEventListener('touchstart', onTouchStart, { passive: false });
-  window.addEventListener('touchmove', onTouchMove, { passive: false });
-  window.addEventListener('touchend', onTouchEnd, { passive: false });
-  window.addEventListener('touchcancel', onTouchEnd, { passive: false });
-}
+el.addEventListener('touchstart', onTouchStart, { passive: false });
+window.addEventListener('touchmove', onTouchMove, { passive: false });
+window.addEventListener('touchend', onTouchEnd, { passive: false });
+window.addEventListener('touchcancel', onTouchEnd, { passive: false });
 
-/* -------------------------
-   round flow & ratings
-   ------------------------- */
+/* -----------------------------
+    round flow & ratings
+   ----------------------------- */
 function startRound(){
   if(roundActive) return;
   if(currentRound === 0) setupBoard();
