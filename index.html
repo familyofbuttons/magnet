@@ -235,6 +235,19 @@
   /* minimal modal styles (keeps visuals consistent with existing UI) */
   .modal-backdrop{ position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.6); z-index:10200; }
   .modal-card{ width:92%; max-width:720px; border-radius:12px; padding:18px; background:#fff; color:#111; box-shadow:0 30px 80px rgba(0,0,0,0.45); border:1px solid rgba(0,0,0,0.06); }
+
+  /* clones of magnets inside modal should look like magnets but not be draggable */
+  .modal-clone{
+    position:relative !important;
+    display:inline-flex !important;
+    margin:6px !important;
+    cursor:default !important;
+    pointer-events:none !important;
+    transform-origin:center center !important;
+  }
+
+  /* small hidden file inputs used for uploads */
+  .hidden-file{ display:none; }
 </style>
 </head>
 <body>
@@ -366,8 +379,7 @@ const SENSIBLE_PHRASES = [
   "georgie","leslie","beverley","allen","house","home","family","boobies","tits","fuck","bollocks","shit","minge","sex","willy","nincompoop","shenanigans","gubbins","pillock","numptey","wazzock"
 ];
 
-
-const SEED = ["allen","gray","beverley","leslie","christine","bee","julywitch","afantasia","case-face","grinchy","brewing","wine","beer","bottle","casey","mandy","moany","I","you","he","she","they","we","it","someone","everyone","nobody","a","an","the","this","that","these","those","my","your","our","their","is","are","was","were","has","have","had","does","do","did","its","it's","isn't","hasn't","needs","need","because","if","but","though","through","and","or","but","if","because","while","when","then","so","cat","dog","dragon","robot","teacher","wizard","pirate","ghost","monster","sandwich","pizza","tea","coffee","cake","sofa","toaster","fridge","banana","run","jump","dance","sing","whisper","shout","laugh","cry","sleep","wash","kneel","drown","cook","bake","brew","make","tiny","huge","sparkly","grumpy","sleepy","noisy","silent","awkward","brilliant","ridiculous","rude","cheeky","horrible","stinky","on","under","over","inside","outside","behind","next","between","around","before","pancake","marshmallow","llama","unicorn","spaceship","cupboard","sock","spoon","noodle","pudding","glitter","chaos","nonsense","mischief","giggle","hiccup","sneeze","burp","rumble","whirlwind","legendary","impossible","unexpected","epic","wonky","secret","plan","accident","story","memory"];
+const SEED = ["allen","gray","beverley","leslie","christine","alex","sam","taylor","jordan","riley","casey","mandy","moany","I","you","he","she","they","we","it","someone","everyone","nobody","a","an","the","this","that","these","those","my","your","our","their","is","are","was","were","has","have","had","does","do","did","its","it's","isn't","hasn't","needs","need","because","if","but","though","through","and","or","but","if","because","while","when","then","so","cat","dog","dragon","robot","teacher","wizard","pirate","ghost","monster","sandwich","pizza","tea","coffee","cake","sofa","toaster","fridge","banana","run","jump","dance","sing","whisper","shout","laugh","cry","sleep","wash","kneel","drown","cook","bake","brew","make","tiny","huge","sparkly","grumpy","sleepy","noisy","silent","awkward","brilliant","ridiculous","rude","cheeky","horrible","stinky","on","under","over","inside","outside","behind","next","between","around","before","pancake","marshmallow","llama","unicorn","spaceship","cupboard","sock","spoon","noodle","pudding","glitter","chaos","nonsense","mischief","giggle","hiccup","sneeze","burp","rumble","whirlwind","legendary","impossible","unexpected","epic","wonky","secret","plan","accident","story","memory"];
 
 const ING_WORDS = ["running","jumping","dancing","singing","whispering","shouting","laughing","crying","sleeping","eating","building","breaking","spinning","floating","glowing","searching","finding","carrying","holding","pushing","pulling","smiling","frowning","cooking","baking","driving","walking","skipping","painting","drawing","typing","scrolling","listening","talking","breathing","splashing","sneezing","washing","kneeling","drowning","brewing","making","cooked","baked","brewed","ing","ed","er","es","s","ly","end"];
 const PUNCTUATION = ['.', ',', '?', '!'];
@@ -381,7 +393,7 @@ function buildBigPool(){
   if(BIG_POOL) return BIG_POOL;
   const adjectives = ["bright","dull","fuzzy","slick","ancient","modern","weird","sudden","quiet","loud","mellow","spicy","bitter","sweet","mystic","rusty","neon","frozen","gentle","brave","calm","wild","sly","bold","soft","sharp","warm","cold","golden","silver","rainbow","colourful","stinky","rude","cheeky"];
   const nouns = ["box","chair","river","mountain","lamp","shoe","hat","phone","keyboard","monitor","bottle","window","door","road","cloud","island","bridge","garden","stone","leaf","star","ship","tower","bench","book","street","market","forest","field","ocean","uncle","aunty","sister","brother","dad","mum","beer","vodka","booze","cat","dog","potato","nipple","frog","hammer","guitar","plant","pot","dressing","gown","pizza","glitter","cheese","pants","jumper","kettle","pills","drugs","music","bath","soap","tree","flower","watch","alexa","bleach","car","bus","train","plane"];
-  const verbs = ["run","jump","dance","sing","climb","throw","hold","bend","choose","plop","drip","Fix","build","speak","hear","listen","iron","comb","Write","read","realise","wonder","think","Shave","whisper","shout","laugh","cry","sleep","eat","build","break","spin","float","glow","search","find","carry","hold","push","pull","wash","kneel","drown","cook","bake","brew","make"];
+  const verbs = ["run","jump","dance","sing","whisper","shout","laugh","cry","sleep","eat","build","break","spin","float","glow","search","find","carry","hold","push","pull","wash","kneel","drown","cook","bake","brew","make"];
 
   const pool = SEED.slice();
   for(let w of ING_WORDS) pool.push(w);
@@ -510,7 +522,7 @@ function generateWordMagnets(force){
 
     wordBank.appendChild(el);
 
-    const magnet = { id:magnetId++, text, el, inPlay:false, x, y, angle };
+    const magnet = { id:magnetId++, text, el, inPlay:false, x, y, angle, scale };
     magnets.push(magnet);
     makeMagnetDraggable(magnet);
   }
@@ -934,6 +946,11 @@ function orderMagnetsRowMajor(cluster){
   return copy;
 }
 
+/* -------------------------
+   Ratings modal: show magnets like main screen
+   - clones each magnet visually using same class and transform
+   - clones are non-interactive (pointer-events:none) but keep the same look/rotation/scale
+   ------------------------- */
 function openRatingsModal(){
   const clusters = clusterMagnets(140);
   if(!clusters.length){ setMessage('No sentences detected this round. Skipping ratings.'); showWinnerAndAdvance(null); return; }
@@ -970,12 +987,9 @@ function openRatingsModal(){
     if(sentences.length === 0){
       html += `<div style="font-size:0.85rem;color:#666">No sentences.</div>`;
     } else {
-      sentences.forEach(s=>{
-        html += `<div style="margin-bottom:8px;display:flex;flex-wrap:wrap;align-items:center">`;
-        s.magnets.forEach(m=>{
-          html += `<span class="modal-magnet">${escapeHtml(m.text)}</span>`;
-        });
-        html += `</div>`;
+      // We'll create containers where we will append magnet clones (so we can preserve look)
+      sentences.forEach((s, si)=>{
+        html += `<div class="sentence-row" data-player="${p}" data-sentence="${si}" style="margin-bottom:8px;display:flex;flex-wrap:wrap;align-items:center"></div>`;
       });
     }
 
@@ -1007,6 +1021,31 @@ function openRatingsModal(){
       row.classList.add('player-highlight');
       row.classList.add('p' + (p+1));
     }
+  }
+
+  // Now populate each sentence-row with clones of the original magnets so they look like the main screen
+  for(let p=0;p<chosenPlayers;p++){
+    const sentences = sentencesByPlayer[p] || [];
+    sentences.forEach((s, si)=>{
+      const container = card.querySelector(`.sentence-row[data-player="${p}"][data-sentence="${si}"]`);
+      if(!container) return;
+      s.magnets.forEach(origMagnet=>{
+        // create a clone element that uses the same visual styling as a magnet
+        const clone = document.createElement('div');
+        clone.className = 'word-magnet modal-clone';
+        // text
+        clone.innerHTML = `<div class="magnet-text">${escapeHtml(origMagnet.text)}</div>`;
+        // copy transform if available (angle/scale)
+        const angle = (origMagnet.angle !== undefined) ? origMagnet.angle : 0;
+        const scale = (origMagnet.scale !== undefined) ? origMagnet.scale : 1;
+        clone.style.transform = `rotate(${angle}deg) scale(${scale})`;
+        // ensure relative sizing inside modal
+        clone.style.left = '0px';
+        clone.style.top = '0px';
+        // append
+        container.appendChild(clone);
+      });
+    });
   }
 
   const ratingsMap = {};
@@ -1272,6 +1311,7 @@ function renderScoreboardInline(showLabels){
    settings (profiles) UI
    - accessible from main screen
    - separate from wizard
+   - added ability to change profile image
    ------------------------- */
 function openSettings(){
   settingsCard.innerHTML = `<div style="font-weight:800;color:#111">Saved Profiles</div><div id="profileList" style="margin-top:12px;max-height:50vh;overflow:auto"></div><div style="display:flex;justify-content:flex-end;margin-top:12px"><button id="closeSettings" class="btn">Close</button></div>`;
@@ -1288,16 +1328,16 @@ function refreshSettingsList(){
   list.forEach(pr=>{
     const row = document.createElement('div');
     row.style.display='flex'; row.style.alignItems='center'; row.style.justifyContent='space-between'; row.style.gap='12px'; row.style.padding='8px 0';
-    row.innerHTML = `<div style="display:flex;align-items:center;gap:12px"><div style="width:48px;height:48px;border-radius:50%;overflow:hidden;background:#eee">${pr.image ? `<img src="${pr.image}" style="width:100%;height:100%;object-fit:cover">` : ''}</div><div><div style="font-weight:700;color:#111">${pr.name}</div><div style="font-size:0.85rem;color:#666">${pr.id}</div></div></div><div style="display:flex;gap:8px"><button class="btn use" data-id="${pr.id}">Use</button><button class="btn edit" data-id="${pr.id}">Edit</button><button class="btn del" data-id="${pr.id}">Delete</button></div>`;
+    row.innerHTML = `<div style="display:flex;align-items:center;gap:12px"><div style="width:48px;height:48px;border-radius:50%;overflow:hidden;background:#eee">${pr.image ? `<img src="${pr.image}" style="width:100%;height:100%;object-fit:cover">` : ''}</div><div><div style="font-weight:700;color:#111">${pr.name}</div><div style="font-size:0.85rem;color:#666">${pr.id}</div></div></div><div style="display:flex;gap:8px"><button class="btn use" data-id="${pr.id}">Use</button><button class="btn edit" data-id="${pr.id}">Edit</button><button class="btn changeimg" data-id="${pr.id}">Change image</button><button class="btn del" data-id="${pr.id}">Delete</button></div>`;
     listEl.appendChild(row);
   });
 
+  // attach handlers
   listEl.querySelectorAll('button.use').forEach(b=>{
     b.addEventListener('click', (ev)=>{
       const id = ev.target.dataset.id;
       const pr = loadProfiles().find(x=>x.id===id);
       if(pr){
-        // apply to first empty player slot in wizard if wizard open, else to player 1
         let target = 0;
         if(wizard.style.display === 'flex'){
           for(let i=0;i<chosenPlayers;i++){
@@ -1338,12 +1378,44 @@ function refreshSettingsList(){
       }
     });
   });
+
+  // change image handler: create a hidden file input, trigger it, read file and update profile
+  listEl.querySelectorAll('button.changeimg').forEach(b=>{
+    b.addEventListener('click', (ev)=>{
+      const id = ev.target.dataset.id;
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.className = 'hidden-file';
+      input.addEventListener('change', (e)=>{
+        const f = e.target.files && e.target.files[0];
+        if(!f) return;
+        const reader = new FileReader();
+        reader.onload = function(evt){
+          const data = evt.target.result;
+          const pr = loadProfiles().find(x=>x.id===id);
+          if(pr){
+            pr.image = data;
+            addOrUpdateProfile(pr);
+            refreshSettingsList();
+            setMessage('Profile image updated for ' + pr.name);
+          }
+        };
+        reader.readAsDataURL(f);
+      });
+      document.body.appendChild(input);
+      input.click();
+      // cleanup after selection
+      input.addEventListener('blur', ()=>{ setTimeout(()=>{ if(input && input.parentNode) input.parentNode.removeChild(input); }, 200); });
+    });
+  });
 }
 
 /* -------------------------
    wizard (setup) UI
    - binds finish button once when step 3 renders
    - profile selection via dropdown in wizard
+   - added file upload per slot to change profile picture before saving
    ------------------------- */
 function openWizard(){
   try{ document.querySelectorAll('.modal-backdrop').forEach(n=>{ if(n && n.parentNode) n.parentNode.removeChild(n); }); }catch(e){}
@@ -1449,6 +1521,10 @@ function renderWizard(){
       const profileOptions = ['(none)'].concat(savedProfiles.map(p=>p.id));
       const selectHtml = `<select id="profile_select_${i}" style="padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.06);max-width:160px"><option value="">(none)</option>` + savedProfiles.map(p=>`<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('') + `</select>`;
 
+      // add a small file input for uploading a profile image for this slot
+      const fileInputId = 'upload_input_' + i;
+      const fileInputHtml = `<input id="${fileInputId}" class="hidden-file" type="file" accept="image/*">`;
+
       row.innerHTML = `
         <div id="preview_${i}" style="width:56px;height:56px;border-radius:50%;overflow:hidden;background:#eee;display:flex;align-items:center;justify-content:center">
           ${uploadedImages[i] ? '<img src="'+uploadedImages[i]+'" style="width:100%;height:100%;object-fit:cover">' : (i+1)}
@@ -1456,11 +1532,13 @@ function renderWizard(){
         <input id="name_${i}" placeholder="Player ${i+1} name" value="${escapeHtml(playerNames[i]||DEFAULT_PLAYER_NAMES[i])}" style="padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.06);min-width:220px">
         ${selectHtml}
         <button type="button" class="btn" id="saveProfile_${i}">Save profile</button>
+        <button type="button" class="btn" id="uploadBtn_${i}">Upload image</button>
+        ${fileInputHtml}
       `;
       slots.appendChild(row);
     }
 
-    // wire up profile selects and save buttons
+    // wire up profile selects, save buttons and upload buttons
     for(let i=0;i<chosenPlayers;i++){
       const sel = document.getElementById('profile_select_' + i);
       if(sel){
@@ -1494,6 +1572,29 @@ function renderWizard(){
           setMessage('Profile saved: ' + name);
           // refresh selects to include new profile without re-rendering the wizard
           refreshWizardProfileSelects();
+        });
+      }
+
+      // upload button triggers hidden file input
+      const uploadBtn = document.getElementById('uploadBtn_' + i);
+      const fileInput = document.getElementById('upload_input_' + i);
+      if(uploadBtn && fileInput){
+        uploadBtn.addEventListener('click', ()=>{
+          fileInput.value = '';
+          fileInput.click();
+        });
+        fileInput.addEventListener('change', (ev)=>{
+          const f = ev.target.files && ev.target.files[0];
+          if(!f) return;
+          const reader = new FileReader();
+          reader.onload = function(evt){
+            const data = evt.target.result;
+            uploadedImages[i] = data;
+            const prev = document.getElementById('preview_' + i);
+            if(prev) prev.innerHTML = `<img src="${data}" style="width:100%;height:100%;object-fit:cover">`;
+            setMessage('Image uploaded for player slot ' + (i+1));
+          };
+          reader.readAsDataURL(f);
         });
       }
     }
