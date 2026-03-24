@@ -1,80 +1,71 @@
-// Basic service worker for GitHub Pages PWA deployment.
-// - Precaches core app shell
-// - Network-first for dynamic assets with cache fallback
-// - Offline fallback to index.html for navigation requests
+// Service Worker for Magnetic Mayhem (GitHub Pages compatible)
 
-const CACHE_VERSION = 'v8';
+const CACHE_VERSION = 'v9';
 const CACHE_NAME = `magnetic-mayhem-${CACHE_VERSION}`;
+
+// IMPORTANT: All paths must be RELATIVE for GitHub Pages
 const PRECACHE_URLS = [
-  '/', 
-  '/index.html',
-  '/index.html?source=pwa',
-  '/styles.css',            // if you extract CSS to a file; safe to include
-  '/pwa-icons/icon-192.png',
-  '/pwa-icons/icon-512.png'
+  'index.html',
+  'index.html?source=pwa',
+  'pwa-icons/icon-192.png',
+  'pwa-icons/icon-512.png'
 ];
 
-// Add common static assets that exist in the repo. If you keep everything inline in index.html,
-// the precache will still register index.html above and the icons.
+// Install: cache core files
 self.addEventListener('install', event => {
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
       return cache.addAll(PRECACHE_URLS).catch(err => {
-        // best-effort: continue even if some assets fail
         console.warn('SW precache failed', err);
       });
     })
   );
 });
 
+// Activate: remove old caches
 self.addEventListener('activate', event => {
   event.waitUntil(
     (async () => {
-      // remove old caches
       const keys = await caches.keys();
       await Promise.all(
         keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
       );
-      // take control immediately
       await self.clients.claim();
     })()
   );
 });
 
-// Helper: respond with cache-first for navigation fallback, network-first for others
+// Fetch handler
 self.addEventListener('fetch', event => {
   const request = event.request;
 
-  // Only handle GET requests
+  // Only handle GET
   if (request.method !== 'GET') return;
 
   const url = new URL(request.url);
 
-  // Navigation requests (SPA style) -> network first, fallback to cache index.html
+  // Navigation requests → network first, fallback to cached index.html
   if (request.mode === 'navigate' || (request.headers.get('accept') || '').includes('text/html')) {
     event.respondWith(
       fetch(request)
         .then(response => {
-          // put a copy in cache
           const copy = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put('/index.html', copy));
+          caches.open(CACHE_NAME).then(cache => cache.put('index.html', copy));
           return response;
         })
-        .catch(() => {
-          return caches.match('/index.html');
-        })
+        .catch(() => caches.match('index.html'))
     );
     return;
   }
 
-  // For other requests: try cache, then network, then fallback to cache
+  // Other requests → cache first, then network
   event.respondWith(
     caches.match(request).then(cached => {
       if (cached) return cached;
+
       return fetch(request)
         .then(networkResponse => {
-          // cache a copy for future
           if (networkResponse && networkResponse.status === 200 && networkResponse.type !== 'opaque') {
             const copy = networkResponse.clone();
             caches.open(CACHE_NAME).then(cache => {
@@ -84,18 +75,18 @@ self.addEventListener('fetch', event => {
           return networkResponse;
         })
         .catch(() => {
-          // if request is for an image, return the 192 icon as fallback
+          // fallback for images
           if (request.destination === 'image') {
-            return caches.match('/pwa-icons/icon-192.png');
+            return caches.match('pwa-icons/icon-192.png');
           }
-          // otherwise try index.html fallback
-          return caches.match('/index.html');
+          // fallback for everything else
+          return caches.match('index.html');
         });
     })
   );
 });
 
-// Optional: listen for skipWaiting message to update immediately
+// Allow skipWaiting
 self.addEventListener('message', event => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
