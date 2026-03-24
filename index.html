@@ -525,6 +525,7 @@ function generateWordMagnets(force){
     const magnet = { id:magnetId++, text, el, inPlay:false, x, y, angle, scale };
     magnets.push(magnet);
 /* -------------------------
+/* -------------------------
    dragging logic (magnets)
    ------------------------- */
 function makeMagnetDraggable(magnet){
@@ -540,6 +541,7 @@ function makeMagnetDraggable(magnet){
     dragging = true;
     hasMoved = false;
     activePointerId = pointerId ?? null;
+
     el.style.zIndex = 9999;
     el.classList.add('dragging');
     wordBank.classList.add('drag-over-candidate');
@@ -549,6 +551,7 @@ function makeMagnetDraggable(magnet){
     offsetX = clientX - r.left;
     offsetY = clientY - r.top;
   }
+
 
   function endDrag(){
     dragging = false;
