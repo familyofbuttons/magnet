@@ -1065,8 +1065,10 @@ function makeMarkerDraggable(marker){
     offsetY = clientY - r.top;
   }
 
-  // ...the rest of your makeMarkerDraggable code continues here...
-}
+  // your onPointerMove, onPointerUp, onTouchStart, onTouchMove, onTouchEnd
+  // ALL stay inside this function
+
+} // ← this closes makeMarkerDraggable properly
 
 
   function endDrag(){ dragging = false; activePointerId = null; document.body.classList.remove('dragging-touch'); }
