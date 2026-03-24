@@ -894,102 +894,33 @@ function openRatingsModal(){
         // append
         container.appendChild(clone);
       });
-    });
-  }
+// Add the rating value directly to each player's score (1-5 points per rating)
+for(let i=0;i<chosenPlayers;i++){
+  scores[i] = (scores[i] || 0) + (deltas[i] || 0);
+}  // ← THIS WAS MISSING
 
-  const ratingsMap = {};
-
-  card.querySelectorAll('.pill').forEach(btn=>{
-    btn.addEventListener('click', (ev)=>{
-      const b = ev.currentTarget;
-      const player = parseInt(b.dataset.player, 10);
-      const score = parseInt(b.dataset.score, 10);
-      ratingsMap[player] = score;
-      card.querySelectorAll(`.pill[data-player="${player}"]`).forEach(p=>p.classList.remove('selected'));
-      b.classList.add('selected');
-    });
-  });
-
-  const submitBtn = card.querySelector('#ratingsSubmit');
-  const cancelBtn = card.querySelector('#ratingsCancel');
-
-  submitBtn.addEventListener('click', ()=>{
-    const deltas = Array.from({length: chosenPlayers}, ()=>0);
-    Object.keys(ratingsMap).forEach(k=>{
-      const idx = parseInt(k,10);
-      deltas[idx] = ratingsMap[idx] || 0;
-    });
-
-    const anyRated = deltas.some(d => d !== 0);
-    if(!anyRated){
-      setMessage('No ratings given — skipping scoring for this round.');
-      if(modal && modal.parentNode) modal.parentNode.removeChild(modal);
-      showWinnerAndAdvance(null);
-      return;
-    }
-
-    // Add the rating value directly to each player's score (1-5 points per rating)
-    for(let i=0;i<chosenPlayers;i++){
-      scores[i] = (scores[i] || 0) + (deltas[i] || 0);
-    }
-
-    // determine top indexes for winner display (based on this round's deltas)
-    let max = -Infinity;
-    for(let i=0;i<chosenPlayers;i++) if(deltas[i] > max) max = deltas[i];
-    const topIndexes = [];
-    for(let i=0;i<chosenPlayers;i++){
-      if(deltas[i] === max && max > 0) topIndexes.push(i);
-    }
-
-    saveScores(scores);
-    updateScoreboard();
-
-    if(modal && modal.parentNode) modal.parentNode.removeChild(modal);
-
-    if(topIndexes.length > 1){
-      showWinnerAndAdvance(topIndexes);
-    } else if(topIndexes.length === 1){
-      showWinnerAndAdvance(topIndexes[0]);
-    } else {
-      showWinnerAndAdvance(null);
-    }
-  });
-
-  cancelBtn.addEventListener('click', ()=>{
-    setMessage('Ratings skipped. No score changes this round.');
-    if(modal && modal.parentNode) modal.parentNode.removeChild(modal);
-    showWinnerAndAdvance(null);
-  });
-
-  function onKey(e){
-    if(e.key === 'Escape'){
-      if(modal && modal.parentNode) modal.parentNode.removeChild(modal);
-      window.removeEventListener('keydown', onKey);
-      showWinnerAndAdvance(null);
-    }
-  }
-  window.addEventListener('keydown', onKey);
+// determine top indexes for winner display (based on this round's deltas)
+let max = -Infinity;
+for(let i=0;i<chosenPlayers;i++) if(deltas[i] > max) max = deltas[i];
+const topIndexes = [];
+for(let i=0;i<chosenPlayers;i++){
+  if(deltas[i] === max && max > 0) topIndexes.push(i);
 }
 
-/* -------------------------
-   scoring & round advance
-   ------------------------- */
-function showWinnerAndAdvance(winnerData){
-  const modal = document.createElement('div');
-  modal.className = 'modal-backdrop';
-  const card = document.createElement('div');
-  card.className = 'modal-card';
+saveScores(scores);
+updateScoreboard();
 
-  let title = `Round ${currentRound}/${totalRounds} complete`;
-  let body = '';
+if(modal && modal.parentNode) modal.parentNode.removeChild(modal);
 
-  if(winnerData == null){
-    body += `<div style="margin-top:8px;font-size:0.95rem;color:#444">No ratings this round.</div>`;
-  } else if(Array.isArray(winnerData) && winnerData.length > 1){
-    const names = winnerData.map(i => escapeHtml(playerNames[i] || ('P'+(i+1))));
-    const list = names.join(' and ');
-    body += `<div style="margin-top:8px;font-size:1rem">Draw — ${list} each get +${scores[winnerData[0]]}</div>`;
-  } else {
+if(topIndexes.length > 1){
+  showWinnerAndAdvance(topIndexes);
+} else if(topIndexes.length === 1){
+  showWinnerAndAdvance(topIndexes[0]);
+} else {
+  showWinnerAndAdvance(null);
+}
+});  // closes submitBtn listener
+
     const idx = Array.isArray(winnerData) ? winnerData[0] : winnerData;
     const wName = escapeHtml(playerNames[idx] || ('P'+(idx+1)));
     body += `<div style="margin-top:8px;font-size:1rem">${wName} won that round</div>`;
@@ -1053,7 +984,7 @@ function showWinnerAndAdvance(winnerData){
     }
   }
   window.addEventListener('keydown', onKey);
-}
+
 
 function resetForNextRound(){
   roundActive = false;
