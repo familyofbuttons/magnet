@@ -466,7 +466,7 @@ function debugLog(...args){
 /* -------------------------
    dragging logic (magnets)
    ------------------------- */
-function makeMagnetDraggable(magnet){
+);function makeMagnetDraggable(magnet){
   const el = magnet.el;
   let dragging = false;
   let offsetX = 0, offsetY = 0;
@@ -592,7 +592,8 @@ function makeMagnetDraggable(magnet){
        centerY >= bankRect.top && centerY <= bankRect.bottom){
 
       const x = Math.round(rand(8, Math.max(80, bankRect.width - 160)));
-      const y = Math.round(rand(6, Math.max(20, bankRect.height - 48))));
+const y = Math.round(rand(6, Math.max(20, bankRect.height - 48)));
+
 
       magnet.inPlay = false;
       magnet.x = x;
