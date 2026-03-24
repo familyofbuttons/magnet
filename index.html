@@ -582,12 +582,20 @@ function clearBoard(){
 /* -------------------------
    dragging logic (magnets)
    ------------------------- */
+/*
+  Change: add a small movement threshold (hasMoved) so a simple click/tap
+  does not trigger the drop/reposition logic. This prevents magnets
+  from jumping to new random positions when the user clicks without dragging.
+*/
 function makeMagnetDraggable(magnet){
   const el = magnet.el;
   let dragging=false, offsetX=0, offsetY=0, activePointerId = null;
+  let hasMoved = false;
+  const MOVE_THRESHOLD = 6; // pixels
 
   function startDrag(clientX, clientY, pointerId){
     dragging = true;
+    hasMoved = false;
     activePointerId = pointerId || null;
     el.style.zIndex = 9999;
     document.body.classList.add('dragging-touch');
@@ -607,6 +615,7 @@ function makeMagnetDraggable(magnet){
     wordBank.classList.remove('drag-over');
     wordBank.classList.remove('drag-over-candidate');
     document.body.classList.remove('dragging-touch');
+    hasMoved = false;
   }
 
   function onPointerDown(e){
@@ -624,21 +633,31 @@ function makeMagnetDraggable(magnet){
     let x = e.clientX - offsetX;
     let y = e.clientY - offsetY;
 
+    // detect movement beyond threshold
+    if(!hasMoved){
+      const dx = Math.abs(e.clientX - (offsetX + (el.getBoundingClientRect().left || 0)));
+      const dy = Math.abs(e.clientY - (offsetY + (el.getBoundingClientRect().top || 0)));
+      if(Math.sqrt(dx*dx + dy*dy) > MOVE_THRESHOLD) hasMoved = true;
+    }
+
     const vw = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
     const vh = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
 
     x = clamp(x, 0, vw - el.offsetWidth);
     y = clamp(y, 0, vh - el.offsetHeight);
 
-    if(!magnet._absolute){
+    if(!magnet._absolute && hasMoved){
       magnet._absolute = true;
       document.body.appendChild(el);
     }
 
-    el.style.left = x + 'px';
-    el.style.top = y + 'px';
-    magnet.x = x;
-    magnet.y = y;
+    // only update position while actually moving
+    if(hasMoved){
+      el.style.left = x + 'px';
+      el.style.top = y + 'px';
+      magnet.x = x;
+      magnet.y = y;
+    }
 
     const bankRect = wordBank.getBoundingClientRect();
     if(e.clientX >= bankRect.left && e.clientX <= bankRect.right && e.clientY >= bankRect.top && e.clientY <= bankRect.bottom){
@@ -651,6 +670,12 @@ function makeMagnetDraggable(magnet){
   function onPointerUp(e){
     if(activePointerId !== null && e.pointerId !== activePointerId) return;
     try{ el.releasePointerCapture(e.pointerId); }catch(err){}
+    // If the user never moved beyond the threshold, treat this as a click — do not reposition
+    if(!hasMoved){
+      endDrag();
+      return;
+    }
+
     const centerX = magnet.x + el.offsetWidth/2;
     const centerY = magnet.y + el.offsetHeight/2;
 
@@ -708,9 +733,66 @@ function makeMagnetDraggable(magnet){
     endDrag();
   }
 
-  function onTouchStart(ev){ if(ev.touches && ev.touches.length){ const t = ev.touches[0]; ev.preventDefault(); startDrag(t.clientX, t.clientY, 'touch'); } }
-  function onTouchMove(ev){ if(!dragging) return; if(ev.touches && ev.touches.length){ const t = ev.touches[0]; ev.preventDefault(); let x = t.clientX - offsetX; let y = t.clientY - offsetY; const vw = Math.max(document.documentElement.clientWidth, window.innerWidth || 0); const vh = Math.max(document.documentElement.clientHeight, window.innerHeight || 0); x = clamp(x, 0, vw - el.offsetWidth); y = clamp(y, 0, vh - el.offsetHeight); if(!magnet._absolute){ magnet._absolute = true; document.body.appendChild(el); } el.style.left = x + 'px'; el.style.top = y + 'px'; magnet.x = x; magnet.y = y; const bankRect = wordBank.getBoundingClientRect(); if(t.clientX >= bankRect.left && t.clientX <= bankRect.right && t.clientY >= bankRect.top && t.clientY <= bankRect.bottom){ wordBank.classList.add('drag-over'); } else { wordBank.classList.remove('drag-over'); } } }
-  function onTouchEnd(ev){ if(!dragging) return; ev.preventDefault(); onPointerUp({ pointerId: activePointerId }); }
+  // Touch fallback
+  function onTouchStart(ev){
+    if(ev.touches && ev.touches.length){
+      const t = ev.touches[0];
+      ev.preventDefault();
+      startDrag(t.clientX, t.clientY, 'touch');
+    }
+  }
+  function onTouchMove(ev){
+    if(!dragging) return;
+    if(ev.touches && ev.touches.length){
+      const t = ev.touches[0];
+      ev.preventDefault();
+      let x = t.clientX - offsetX;
+      let y = t.clientY - offsetY;
+
+      // detect movement beyond threshold
+      if(!hasMoved){
+        const dx = Math.abs(t.clientX - (offsetX + (el.getBoundingClientRect().left || 0)));
+        const dy = Math.abs(t.clientY - (offsetY + (el.getBoundingClientRect().top || 0)));
+        if(Math.sqrt(dx*dx + dy*dy) > MOVE_THRESHOLD) hasMoved = true;
+      }
+
+      const vw = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+      const vh = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+
+      x = clamp(x, 0, vw - el.offsetWidth);
+      y = clamp(y, 0, vh - el.offsetHeight);
+
+      if(!magnet._absolute && hasMoved){
+        magnet._absolute = true;
+        document.body.appendChild(el);
+      }
+
+      if(hasMoved){
+        el.style.left = x + 'px';
+        el.style.top = y + 'px';
+        magnet.x = x;
+        magnet.y = y;
+      }
+
+      const bankRect = wordBank.getBoundingClientRect();
+      if(t.clientX >= bankRect.left && t.clientX <= bankRect.right && t.clientY >= bankRect.top && t.clientY <= bankRect.bottom){
+        wordBank.classList.add('drag-over');
+      } else {
+        wordBank.classList.remove('drag-over');
+      }
+    }
+  }
+  function onTouchEnd(ev){
+    if(!dragging) return;
+    ev.preventDefault();
+    // if no meaningful move happened, treat as click and do nothing
+    if(!hasMoved){
+      endDrag();
+      return;
+    }
+    // call pointer up logic with a fake pointerId to match checks
+    onPointerUp({ pointerId: activePointerId });
+  }
 
   el.addEventListener('pointerdown', onPointerDown, { passive: false });
   window.addEventListener('pointermove', onPointerMove, { passive: false });
