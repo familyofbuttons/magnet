@@ -126,7 +126,10 @@
     touch-action: none;
     -webkit-user-drag: none;
     -webkit-touch-callout: none;
+    transform-origin:center center;
+    transition: transform 120ms ease, box-shadow 120ms ease;
   }
+  .word-magnet.dragging{ cursor:grabbing; box-shadow:0 20px 50px rgba(0,0,0,0.6); }
 
   .play-area{
     min-height:720px;
@@ -155,6 +158,8 @@
     touch-action: none;
     -webkit-user-drag: none;
     -webkit-touch-callout: none;
+    cursor:grab;
+    transform-origin:center center;
   }
 
   .marker-p1{background:var(--p1)}
@@ -244,6 +249,12 @@
     cursor:default !important;
     pointer-events:none !important;
     transform-origin:center center !important;
+    background:#fff !important;
+    color:#111 !important;
+    border-radius:10px !important;
+    padding:8px 12px !important;
+    box-shadow:0 8px 24px rgba(0,0,0,0.12) !important;
+    font-weight:800 !important;
   }
 
   /* small hidden file inputs used for uploads */
@@ -471,13 +482,14 @@ function clearBoard(){
   magnetId = 1;
   // clear word bank DOM
   if(wordBank) wordBank.innerHTML = '';
-  // clear play area magnets (if any)
-  // leave play hint
+  // clear play area magnets and markers
+  playArea.innerHTML = '';
   const hint = document.createElement('div');
   hint.className = 'play-hint';
   hint.textContent = 'Shared play area — park your marker, then drag words near it.';
-  playArea.innerHTML = '';
   playArea.appendChild(hint);
+  // clear markers array
+  markers = [];
 }
 
 function regenerateWordPool(){
@@ -496,6 +508,11 @@ function regenerateWordPool(){
     const el = document.createElement('div');
     el.className = 'word-magnet';
     el.innerHTML = `<div class="magnet-text">${escapeHtml(text)}</div>`;
+    // random rotation and slight scale to keep the "funky slanty magnet" look
+    const angle = Math.round(rand(-12,12));
+    const scale = +(rand(0.92,1.08)).toFixed(2);
+    el.style.transform = `rotate(${angle}deg) scale(${scale})`;
+
     // random position inside bank
     const x = Math.round(rand(8, Math.max(80, bankW - 160)));
     const y = Math.round(rand(6, Math.max(20, bankH - 48)));
@@ -504,10 +521,13 @@ function regenerateWordPool(){
     el.style.zIndex = 1;
     wordBank.appendChild(el);
 
-    const magnet = { id: magnetId++, text: String(text), el, inPlay:false, x, y, angle:0, scale:1, _absolute:false };
+    const magnet = { id: magnetId++, text: String(text), el, inPlay:false, x, y, angle, scale, _absolute:false };
     magnets.push(magnet);
     makeMagnetDraggable(magnet);
   }
+
+  // After magnets are created, recreate player markers so they appear on the play area
+  createPlayerMarkers(chosenPlayers);
 }
 
 /* -------------------------
@@ -843,7 +863,7 @@ function orderMagnetsRowMajor(cluster){
 }
 
 /* -------------------------
-   Ratings modal (simplified but functional)
+   Ratings modal: clones with transforms restored
    ------------------------- */
 let _lastRoundDeltas = null;
 
@@ -851,12 +871,10 @@ function openRatingsModal(){
   const clusters = clusterMagnets(140);
   if(!clusters.length){
     setMessage('No sentences detected this round. Skipping ratings.');
-    // advance without scoring
     showWinnerAndAdvance(null);
     return;
   }
 
-  // assign clusters to players
   const byPlayer = assignClustersToMarkers(clusters);
   const sentencesByPlayer = byPlayer.map(playerClusters=>{
     const out = [];
@@ -868,7 +886,6 @@ function openRatingsModal(){
     return out;
   });
 
-  // Build a simple modal that lists sentences and allows a 1-5 rating per player
   const modal = document.createElement('div'); modal.className='modal-backdrop';
   const card = document.createElement('div'); card.className='modal-card';
 
@@ -884,6 +901,7 @@ function openRatingsModal(){
     const name = escapeHtml(playerNames[p] || ('P'+(p+1)));
 
     html += `<div class="rating-row" data-player="${p}" style="padding:10px;border-radius:10px">`;
+
     html += `<div style="flex:1;min-width:0">
       <div style="font-weight:800;margin-bottom:6px">${name}</div>`;
 
@@ -891,7 +909,8 @@ function openRatingsModal(){
       html += `<div style="font-size:0.85rem;color:#666">No sentences.</div>`;
     } else {
       sentences.forEach((s, si)=>{
-        html += `<div class="sentence-row" data-player="${p}" data-sentence="${si}" style="margin-bottom:8px;display:flex;flex-wrap:wrap;align-items:center"><div style="margin-right:8px;font-weight:700;color:#222">${escapeHtml(s.text)}</div></div>`;
+        // container where clones will be appended
+        html += `<div class="sentence-row" data-player="${p}" data-sentence="${si}" style="margin-bottom:8px;display:flex;flex-wrap:wrap;align-items:center"></div>`;
       });
     }
 
@@ -916,7 +935,7 @@ function openRatingsModal(){
   modal.appendChild(card);
   document.body.appendChild(modal);
 
-  // visual highlights
+  // visually add player color highlights to rating rows (pre-submit)
   for(let p=0;p<chosenPlayers;p++){
     const row = card.querySelector(`.rating-row[data-player="${p}"]`);
     if(row){
@@ -925,11 +944,35 @@ function openRatingsModal(){
     }
   }
 
+  // Now populate each sentence-row with clones of the original magnets so they look like the main screen
+  for(let p=0;p<chosenPlayers;p++){
+    const sentences = sentencesByPlayer[p] || [];
+    sentences.forEach((s, si)=>{
+      const container = card.querySelector(`.sentence-row[data-player="${p}"][data-sentence="${si}"]`);
+      if(!container) return;
+      s.magnets.forEach(origMagnet=>{
+        // create a clone element that uses the same visual styling as a magnet
+        const clone = document.createElement('div');
+        clone.className = 'word-magnet modal-clone';
+        // text
+        clone.innerHTML = `<div class="magnet-text">${escapeHtml(origMagnet.text)}</div>`;
+        // copy transform if available (angle/scale)
+        const angle = (origMagnet.angle !== undefined) ? origMagnet.angle : 0;
+        const scale = (origMagnet.scale !== undefined) ? origMagnet.scale : 1;
+        clone.style.transform = `rotate(${angle}deg) scale(${scale})`;
+        // ensure relative sizing inside modal
+        clone.style.left = '0px';
+        clone.style.top = '0px';
+        // append
+        container.appendChild(clone);
+      });
+    });
+  }
+
   // pill selection behavior
   card.querySelectorAll('.pill').forEach(btn=>{
     btn.addEventListener('click', (ev)=>{
       const p = btn.dataset.player;
-      // deselect other pills for this player
       card.querySelectorAll(`.pill[data-player="${p}"]`).forEach(b=>b.classList.remove('selected'));
       btn.classList.add('selected');
     });
@@ -1161,6 +1204,135 @@ function renderScoreboardInline(showLabels){
     html += `<div style="display:inline-block;padding:6px 10px;border-radius:999px;background:rgba(0,0,0,0.04);margin-right:6px;font-weight:700;color:${showLabels ? '#111' : '#111'}">${escapeHtml(playerNames[i] || ('P'+(i+1)))}: ${scores[i]||0}</div>`;
   }
   return html;
+}
+
+/* -------------------------
+   player markers: creation & dragging
+   ------------------------- */
+function createPlayerMarkers(count){
+  // remove existing markers from DOM
+  try{
+    markers.forEach(m=>{ if(m.el && m.el.parentNode) m.el.parentNode.removeChild(m.el); });
+  }catch(e){}
+  markers = [];
+
+  // compute initial positions inside playArea (spread horizontally near top)
+  const pad = 16;
+  const areaRect = playArea.getBoundingClientRect();
+  const areaW = areaRect.width || Math.max(600, window.innerWidth * 0.6);
+  const areaH = areaRect.height || 480;
+
+  const spacing = Math.max(110, Math.floor((areaW - pad*2) / Math.max(1,count)));
+  for(let i=0;i<count;i++){
+    const el = document.createElement('div');
+    el.className = 'player-marker marker-p' + (i+1);
+    el.style.left = (pad + i*spacing) + 'px';
+    el.style.top = (pad) + 'px';
+    el.style.zIndex = 500;
+    // show image if uploaded, otherwise initial
+    if(uploadedImages[i]){
+      el.innerHTML = `<img class="marker-img" src="${uploadedImages[i]}">`;
+    } else {
+      el.textContent = (playerNames[i] ? playerNames[i].charAt(0).toUpperCase() : (i+1));
+    }
+
+    playArea.appendChild(el);
+
+    const marker = { idx: i, el, x: pad + i*spacing, y: pad, dragging:false, offsetX:0, offsetY:0 };
+    markers.push(marker);
+
+    // add dragging behavior for markers (simple)
+    makeMarkerDraggable(marker);
+  }
+}
+
+function makeMarkerDraggable(marker){
+  const el = marker.el;
+  let dragging = false;
+  let offsetX = 0, offsetY = 0;
+  let activePointer = null;
+
+  function start(clientX, clientY, pointerId){
+    dragging = true;
+    activePointer = pointerId ?? null;
+    el.style.cursor = 'grabbing';
+    const r = el.getBoundingClientRect();
+    offsetX = clientX - r.left;
+    offsetY = clientY - r.top;
+    marker.dragging = true;
+  }
+
+  function move(clientX, clientY){
+    if(!dragging) return;
+    const areaRect = playArea.getBoundingClientRect();
+    let x = clientX - areaRect.left - offsetX;
+    let y = clientY - areaRect.top - offsetY;
+    x = clamp(x, 0, areaRect.width - el.offsetWidth);
+    y = clamp(y, 0, areaRect.height - el.offsetHeight);
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
+    marker.x = x;
+    marker.y = y;
+  }
+
+  function end(){
+    dragging = false;
+    activePointer = null;
+    el.style.cursor = 'grab';
+    marker.dragging = false;
+  }
+
+  function onPointerDown(e){
+    if(e.pointerType === 'mouse' && e.button !== 0) return;
+    e.preventDefault();
+    try { el.setPointerCapture(e.pointerId); } catch(err){}
+    start(e.clientX, e.clientY, e.pointerId);
+  }
+  function onPointerMove(e){
+    if(!dragging) return;
+    if(activePointer !== null && e.pointerId !== activePointer) return;
+    e.preventDefault();
+    move(e.clientX, e.clientY);
+  }
+  function onPointerUp(e){
+    if(activePointer !== null && e.pointerId !== activePointer) return;
+    try { if(e && e.pointerId != null) el.releasePointerCapture(e.pointerId); } catch(err){}
+    end();
+  }
+
+  function onTouchStart(ev){
+    for(let i=0;i<ev.changedTouches.length;i++){
+      const t = ev.changedTouches[i];
+      if(t.target === el || el.contains(t.target)){
+        ev.preventDefault();
+        start(t.clientX, t.clientY, null);
+        break;
+      }
+    }
+  }
+  function onTouchMove(ev){
+    if(!dragging) return;
+    let found = null;
+    for(let i=0;i<ev.touches.length;i++){
+      found = ev.touches[i];
+      break;
+    }
+    if(!found) return;
+    ev.preventDefault();
+    move(found.clientX, found.clientY);
+  }
+  function onTouchEnd(ev){
+    if(!dragging) return;
+    end();
+  }
+
+  el.addEventListener('pointerdown', onPointerDown, { passive:false });
+  window.addEventListener('pointermove', onPointerMove, { passive:false });
+  window.addEventListener('pointerup', onPointerUp, { passive:false });
+
+  el.addEventListener('touchstart', onTouchStart, { passive:false });
+  window.addEventListener('touchmove', onTouchMove, { passive:false });
+  window.addEventListener('touchend', onTouchEnd, { passive:false });
 }
 
 /* -------------------------
