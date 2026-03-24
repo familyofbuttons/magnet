@@ -347,8 +347,7 @@ let totalRounds = 0;
 let timeLeft = 0;
 let timer = null;
 let scores = [0,0,0,0];
-let chosenPlayers = 0;
-
+let chosenPlayers = 2; // default to 2 players for convenience
 
 /* -------------------------
    helpers
@@ -453,21 +452,68 @@ function loadScores(){ try{ const raw = localStorage.getItem(SCORE_KEY); if(!raw
 function saveScores(arr){ try{ localStorage.setItem(SCORE_KEY, JSON.stringify(arr)); }catch(e){} }
 
 /* -------------------------
-   regeneration guard (fix for accidental re-runs)
+   regeneration guard & debug
    ------------------------- */
 let _allowMagnetRegeneration = false;
-function debugLog(...args){
-  // set to false to silence
-     const magnet = { id:magnetId++, text, el, inPlay:false, x, y, angle, scale };
-    magnets.push(magnet);
-  } // end for loop
-
-} // end generateWordMagnets()
+function debugLog(){ /* no-op for production */ }
 
 /* -------------------------
-   dragging logic (magnets)
+   magnet generation & pool regeneration
    ------------------------- */
-);function makeMagnetDraggable(magnet){
+function clearBoard(){
+  // remove magnet elements
+  try{
+    magnets.forEach(m=>{
+      if(m.el && m.el.parentNode) m.el.parentNode.removeChild(m.el);
+    });
+  }catch(e){}
+  magnets = [];
+  magnetId = 1;
+  // clear word bank DOM
+  if(wordBank) wordBank.innerHTML = '';
+  // clear play area magnets (if any)
+  // leave play hint
+  const hint = document.createElement('div');
+  hint.className = 'play-hint';
+  hint.textContent = 'Shared play area — park your marker, then drag words near it.';
+  playArea.innerHTML = '';
+  playArea.appendChild(hint);
+}
+
+function regenerateWordPool(){
+  buildBigPool();
+  clearBoard();
+  const pool = BIG_POOL.slice();
+  shuffle(pool);
+  const count = Math.min(VISIBLE_MAGNETS, pool.length);
+  const bankRect = wordBank.getBoundingClientRect();
+  // If bankRect has zero size (not yet laid out), use fallback sizes
+  const bankW = bankRect.width || Math.max(600, window.innerWidth * 0.6);
+  const bankH = bankRect.height || 320;
+
+  for(let i=0;i<count;i++){
+    const text = pool[i];
+    const el = document.createElement('div');
+    el.className = 'word-magnet';
+    el.innerHTML = `<div class="magnet-text">${escapeHtml(text)}</div>`;
+    // random position inside bank
+    const x = Math.round(rand(8, Math.max(80, bankW - 160)));
+    const y = Math.round(rand(6, Math.max(20, bankH - 48)));
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
+    el.style.zIndex = 1;
+    wordBank.appendChild(el);
+
+    const magnet = { id: magnetId++, text: String(text), el, inPlay:false, x, y, angle:0, scale:1, _absolute:false };
+    magnets.push(magnet);
+    makeMagnetDraggable(magnet);
+  }
+}
+
+/* -------------------------
+   draggable magnets
+   ------------------------- */
+function makeMagnetDraggable(magnet){
   const el = magnet.el;
   let dragging = false;
   let offsetX = 0, offsetY = 0;
@@ -483,7 +529,6 @@ function debugLog(...args){
 
     el.style.zIndex = 9999;
     el.classList.add('dragging');
-    wordBank.classList.add('drag-over-candidate');
     document.body.classList.add('dragging-touch');
 
     const r = el.getBoundingClientRect();
@@ -499,8 +544,6 @@ function debugLog(...args){
 
     el.style.zIndex = 1;
     el.classList.remove('dragging');
-    wordBank.classList.remove('drag-over');
-    wordBank.classList.remove('drag-over-candidate');
     document.body.classList.remove('dragging-touch');
   }
 
@@ -558,7 +601,7 @@ function debugLog(...args){
 
   function onPointerUp(e){
     if(activePointerId !== null && e.pointerId !== activePointerId) return;
-    try { el.releasePointerCapture(e.pointerId); } catch(err){}
+    try { if(e && e.pointerId != null) el.releasePointerCapture(e.pointerId); } catch(err){}
 
     if(!hasMoved){
       endDrag();
@@ -593,8 +636,7 @@ function debugLog(...args){
        centerY >= bankRect.top && centerY <= bankRect.bottom){
 
       const x = Math.round(rand(8, Math.max(80, bankRect.width - 160)));
-const y = Math.round(rand(6, Math.max(20, bankRect.height - 48)));
-
+      const y = Math.round(rand(6, Math.max(20, bankRect.height - 48)));
 
       magnet.inPlay = false;
       magnet.x = x;
@@ -689,6 +731,7 @@ const y = Math.round(rand(6, Math.max(20, bankRect.height - 48)));
           return;
         }
 
+        // emulate pointer up
         onPointerUp({ pointerId: null });
         return;
       }
@@ -773,8 +816,13 @@ function clusterMagnets(eps){
 }
 
 function assignClustersToMarkers(clusters){
+  // If markers are not present, assign clusters round-robin to chosenPlayers
   const assigned = Array.from({length: chosenPlayers}, ()=>[]);
-  if(!markers || markers.length === 0) return assigned;
+  if(!markers || markers.length === 0){
+    clusters.forEach((c, idx)=>{ assigned[idx % chosenPlayers].push(c); });
+    return assigned;
+  }
+  // otherwise use nearest marker logic
   clusters.forEach(cluster=>{
     let cx=0, cy=0;
     cluster.forEach(m=>{ cx += m.x + (m.el ? m.el.offsetWidth/2 : 0); cy += m.y + (m.el ? m.el.offsetHeight/2 : 0); });
@@ -795,13 +843,20 @@ function orderMagnetsRowMajor(cluster){
 }
 
 /* -------------------------
-   Ratings modal: show magnets like main screen
-   - clones each magnet visually using same class and transform
-   - clones are non-interactive (pointer-events:none) but keep the same look/rotation/scale
+   Ratings modal (simplified but functional)
    ------------------------- */
+let _lastRoundDeltas = null;
+
 function openRatingsModal(){
   const clusters = clusterMagnets(140);
-  if(!clusters.length){ setMessage('No sentences detected this round. Skipping ratings.'); showWinnerAndAdvance(null); return; }
+  if(!clusters.length){
+    setMessage('No sentences detected this round. Skipping ratings.');
+    // advance without scoring
+    showWinnerAndAdvance(null);
+    return;
+  }
+
+  // assign clusters to players
   const byPlayer = assignClustersToMarkers(clusters);
   const sentencesByPlayer = byPlayer.map(playerClusters=>{
     const out = [];
@@ -813,6 +868,7 @@ function openRatingsModal(){
     return out;
   });
 
+  // Build a simple modal that lists sentences and allows a 1-5 rating per player
   const modal = document.createElement('div'); modal.className='modal-backdrop';
   const card = document.createElement('div'); card.className='modal-card';
 
@@ -828,16 +884,14 @@ function openRatingsModal(){
     const name = escapeHtml(playerNames[p] || ('P'+(p+1)));
 
     html += `<div class="rating-row" data-player="${p}" style="padding:10px;border-radius:10px">`;
-
     html += `<div style="flex:1;min-width:0">
       <div style="font-weight:800;margin-bottom:6px">${name}</div>`;
 
     if(sentences.length === 0){
       html += `<div style="font-size:0.85rem;color:#666">No sentences.</div>`;
     } else {
-      // We'll create containers where we will append magnet clones (so we can preserve look)
       sentences.forEach((s, si)=>{
-        html += `<div class="sentence-row" data-player="${p}" data-sentence="${si}" style="margin-bottom:8px;display:flex;flex-wrap:wrap;align-items:center"></div>`;
+        html += `<div class="sentence-row" data-player="${p}" data-sentence="${si}" style="margin-bottom:8px;display:flex;flex-wrap:wrap;align-items:center"><div style="margin-right:8px;font-weight:700;color:#222">${escapeHtml(s.text)}</div></div>`;
       });
     }
 
@@ -861,10 +915,8 @@ function openRatingsModal(){
   card.innerHTML = html;
   modal.appendChild(card);
   document.body.appendChild(modal);
-}
 
-
-  // visually add player color highlights to rating rows (pre-submit)
+  // visual highlights
   for(let p=0;p<chosenPlayers;p++){
     const row = card.querySelector(`.rating-row[data-player="${p}"]`);
     if(row){
@@ -873,56 +925,79 @@ function openRatingsModal(){
     }
   }
 
-  // Now populate each sentence-row with clones of the original magnets so they look like the main screen
-  for(let p=0;p<chosenPlayers;p++){
-    const sentences = sentencesByPlayer[p] || [];
-    sentences.forEach((s, si)=>{
-      const container = card.querySelector(`.sentence-row[data-player="${p}"][data-sentence="${si}"]`);
-      if(!container) return;
-      s.magnets.forEach(origMagnet=>{
-        // create a clone element that uses the same visual styling as a magnet
-        const clone = document.createElement('div');
-        clone.className = 'word-magnet modal-clone';
-        // text
-        clone.innerHTML = `<div class="magnet-text">${escapeHtml(origMagnet.text)}</div>`;
-        // copy transform if available (angle/scale)
-        const angle = (origMagnet.angle !== undefined) ? origMagnet.angle : 0;
-        const scale = (origMagnet.scale !== undefined) ? origMagnet.scale : 1;
-        clone.style.transform = `rotate(${angle}deg) scale(${scale})`;
-        // ensure relative sizing inside modal
-        clone.style.left = '0px';
-        clone.style.top = '0px';
-        // append
-        container.appendChild(clone);
-      });
-// Add the rating value directly to each player's score (1-5 points per rating)
-for(let i=0;i<chosenPlayers;i++){
-  scores[i] = (scores[i] || 0) + (deltas[i] || 0);
-}  // ← THIS WAS MISSING
+  // pill selection behavior
+  card.querySelectorAll('.pill').forEach(btn=>{
+    btn.addEventListener('click', (ev)=>{
+      const p = btn.dataset.player;
+      // deselect other pills for this player
+      card.querySelectorAll(`.pill[data-player="${p}"]`).forEach(b=>b.classList.remove('selected'));
+      btn.classList.add('selected');
+    });
+  });
 
-// determine top indexes for winner display (based on this round's deltas)
-let max = -Infinity;
-for(let i=0;i<chosenPlayers;i++) if(deltas[i] > max) max = deltas[i];
-const topIndexes = [];
-for(let i=0;i<chosenPlayers;i++){
-  if(deltas[i] === max && max > 0) topIndexes.push(i);
+  const cancelBtn = card.querySelector('#ratingsCancel');
+  if(cancelBtn) cancelBtn.addEventListener('click', ()=>{
+    if(modal && modal.parentNode) modal.parentNode.removeChild(modal);
+    showWinnerAndAdvance(null);
+  });
+
+  const submitBtn = card.querySelector('#ratingsSubmit');
+  if(submitBtn) submitBtn.addEventListener('click', ()=>{
+    // collect ratings
+    const deltas = Array.from({length: chosenPlayers}, ()=>0);
+    for(let p=0;p<chosenPlayers;p++){
+      const sel = card.querySelector(`.pill.selected[data-player="${p}"]`);
+      const val = sel ? parseInt(sel.dataset.score,10) : 0;
+      deltas[p] = val;
+    }
+
+    // apply deltas to scores
+    for(let i=0;i<chosenPlayers;i++){
+      scores[i] = (scores[i] || 0) + (deltas[i] || 0);
+    }
+
+    // determine top indexes for winner display (based on this round's deltas)
+    let max = -Infinity;
+    for(let i=0;i<chosenPlayers;i++) if(deltas[i] > max) max = deltas[i];
+    const topIndexes = [];
+    for(let i=0;i<chosenPlayers;i++){
+      if(deltas[i] === max && max > 0) topIndexes.push(i);
+    }
+
+    saveScores(scores);
+    updateScoreboard();
+
+    if(modal && modal.parentNode) modal.parentNode.removeChild(modal);
+
+    _lastRoundDeltas = deltas.slice();
+
+    if(topIndexes.length > 1){
+      showWinnerAndAdvance(topIndexes);
+    } else if(topIndexes.length === 1){
+      showWinnerAndAdvance(topIndexes[0]);
+    } else {
+      showWinnerAndAdvance(null);
+    }
+  });
 }
 
-saveScores(scores);
-updateScoreboard();
+/* -------------------------
+   winner modal & round advance
+   ------------------------- */
+function showWinnerAndAdvance(winnerData){
+  const modal = document.createElement('div');
+  modal.className = 'modal-backdrop';
+  const card = document.createElement('div');
+  card.className = 'modal-card';
 
-if(modal && modal.parentNode) modal.parentNode.removeChild(modal);
+  let title = 'Round results';
+  let body = '';
 
-if(topIndexes.length > 1){
-  showWinnerAndAdvance(topIndexes);
-} else if(topIndexes.length === 1){
-  showWinnerAndAdvance(topIndexes[0]);
-} else {
-  showWinnerAndAdvance(null);
-}
-});  // closes submitBtn listener
-
-    const idx = Array.isArray(winnerData) ? winnerData[0] : winnerData;
+  if(winnerData == null){
+    body += `<div style="font-size:1rem">No clear winner this round.</div>`;
+  } else {
+    const winners = Array.isArray(winnerData) ? winnerData : [winnerData];
+    const idx = winners[0];
     const wName = escapeHtml(playerNames[idx] || ('P'+(idx+1)));
     body += `<div style="margin-top:8px;font-size:1rem">${wName} won that round</div>`;
   }
@@ -947,7 +1022,7 @@ if(topIndexes.length > 1){
       tile.className = 'jounty-tile player-highlight p' + (wi+1);
       tile.style.marginTop = '12px';
       tile.style.display = 'inline-block';
-      tile.textContent = (playerNames[wi] || ('P'+(wi+1))) + ' — +' + (scores[wi]||0);
+      tile.textContent = (playerNames[wi] || ('P'+(wi+1))) + ' — +' + ((_lastRoundDeltas && _lastRoundDeltas[wi]) || 0);
       card.appendChild(tile);
     });
   }
@@ -985,7 +1060,7 @@ if(topIndexes.length > 1){
     }
   }
   window.addEventListener('keydown', onKey);
-
+}
 
 function resetForNextRound(){
   roundActive = false;
@@ -1090,9 +1165,6 @@ function renderScoreboardInline(showLabels){
 
 /* -------------------------
    settings (profiles) UI
-   - accessible from main screen
-   - separate from wizard
-   - added ability to change profile image
    ------------------------- */
 function openSettings(){
   settingsCard.innerHTML = `<div style="font-weight:800;color:#111">Saved Profiles</div><div id="profileList" style="margin-top:12px;max-height:50vh;overflow:auto"></div><div style="display:flex;justify-content:flex-end;margin-top:12px"><button id="closeSettings" class="btn">Close</button></div>`;
@@ -1194,9 +1266,6 @@ function refreshSettingsList(){
 
 /* -------------------------
    wizard (setup) UI
-   - binds finish button once when step 3 renders
-   - profile selection via dropdown in wizard
-   - added file upload per slot to change profile picture before saving
    ------------------------- */
 function openWizard(){
   try{ document.querySelectorAll('.modal-backdrop').forEach(n=>{ if(n && n.parentNode) n.parentNode.removeChild(n); }); }catch(e){}
@@ -1210,7 +1279,6 @@ function openWizard(){
 }
 
 function refreshWizardProfileSelects(){
-  // update selects and previews without re-rendering the whole wizard
   const savedProfiles = loadProfiles();
   for(let i=0;i<chosenPlayers;i++){
     const sel = document.getElementById('profile_select_' + i);
@@ -1413,9 +1481,24 @@ function renderWizard(){
         }
       });
     }
-
     return;
   }
+}
+
+/* -------------------------
+   UI helpers
+   ------------------------- */
+function renderStartButton(){
+  startGameWrap.innerHTML = '';
+  const btn = document.createElement('div');
+  btn.className = 'jounty-tile';
+  btn.style.minWidth = '140px';
+  btn.textContent = roundActive ? 'Round in progress' : 'Start Game';
+  btn.addEventListener('click', ()=>{
+    if(roundActive) return;
+    startRound();
+  });
+  startGameWrap.appendChild(btn);
 }
 
 /* -------------------------
@@ -1424,6 +1507,7 @@ function renderWizard(){
 document.getElementById('reshuffle').addEventListener('click', ()=>{
   regenerateWordPool();
   setMessage('New word mix loaded for this round.');
+});
 
 openSettingsBtn.addEventListener('click', ()=>{ openSettings(); });
 
@@ -1435,15 +1519,15 @@ function init(){
   scores = loadScores().slice(0,4);
   updateScoreboard();
   applyTheme(chosenTheme);
+  renderStartButton();
   openWizard();
 }
 
 window.buildBigPool = buildBigPool;
-   function setupBoard(){
+function setupBoard(){
   // Placeholder to satisfy the call in startRound().
-  // Your board setup is already handled elsewhere.
+  // Board setup is handled by regenerateWordPool and user interactions.
 }
-
 window.setupBoard = setupBoard;
 
 init();
