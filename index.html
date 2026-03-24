@@ -524,129 +524,52 @@ function generateWordMagnets(force){
 
     const magnet = { id:magnetId++, text, el, inPlay:false, x, y, angle, scale };
     magnets.push(magnet);
-    makeMagnetDraggable(magnet);
-  }
-}
-
-/* -------------------------
-   board setup & magnets
-   ------------------------- */
-function renderStartButton(){
-  startGameWrap.innerHTML = '';
-  const btn = document.createElement('div');
-  btn.className='btn-primary';
-  btn.textContent = 'Start Game';
-  btn.addEventListener('click', ()=>{ startRound(); });
-  startGameWrap.appendChild(btn);
-}
-
-function setupBoard(){
-  clearBoard();
-  markers = [];
-
-  const rect = playArea.getBoundingClientRect();
-  const w = rect.width, h = rect.height;
-
-  const positions = [
-    {x: Math.max(12, Math.round(w * 0.02)), y: Math.max(12, Math.round(h * 0.02))},
-    {x: Math.max(12, Math.round(w * 0.86)), y: Math.max(12, Math.round(h * 0.02))},
-    {x: Math.max(12, Math.round(w * 0.02)), y: Math.max(12, Math.round(h * 0.86))},
-    {x: Math.max(12, Math.round(w * 0.86)), y: Math.max(12, Math.round(h * 0.86))}
-  ];
-
-  for(let i=0;i<chosenPlayers;i++){
-    const el = document.createElement('div');
-    el.className = 'player-marker marker-p'+(i+1);
-    el.style.left = positions[i].x + 'px';
-    el.style.top = positions[i].y + 'px';
-
-    const inner = document.createElement('div');
-    inner.style.width='100%';
-    inner.style.height='100%';
-    inner.style.display='flex';
-    inner.style.alignItems='center';
-    inner.style.justifyContent='center';
-    inner.style.fontWeight='900';
-    inner.style.color='#111';
-
-    if(uploadedImages[i]){
-      const img = document.createElement('img');
-      img.className='marker-img';
-      img.src = uploadedImages[i];
-      inner.appendChild(img);
-    } else {
-      inner.textContent = playerNames[i] || DEFAULT_PLAYER_NAMES[i];
-    }
-
-    el.appendChild(inner);
-    playArea.appendChild(el);
-
-    const marker = { playerIndex:i, el, x:positions[i].x, y:positions[i].y, imgSrc:uploadedImages[i]||null };
-    markers.push(marker);
-    makeMarkerDraggable(marker);
-  }
-
-  // explicit regeneration only
-  regenerateWordPool();
-  setMessage('Place markers, then press Start Game.');
-}
-
-function clearBoard(){
-  magnets.forEach(m=>{ if(m.el && m.el.parentNode) m.el.parentNode.removeChild(m.el); });
-  magnets = [];
-  markers.forEach(m=>{ if(m.el && m.el.parentNode) m.el.parentNode.removeChild(m.el); });
-  markers = [];
-  magnetId = 1;
-}
-
 /* -------------------------
    dragging logic (magnets)
    ------------------------- */
-/*
-  Change: add a small movement threshold (hasMoved) so a simple click/tap
-  does not trigger the drop/reposition logic. This prevents magnets
-  from jumping to new random positions when the user clicks without dragging.
-*/
-function makeMagnetDraggable(magnet){
 function makeMagnetDraggable(magnet){
   const el = magnet.el;
-  let dragging=false, offsetX=0, offsetY=0, activePointerId = null;
-  let hasMoved = false;
-  const MOVE_THRESHOLD = 6; // pixels
-
-  // For touch fallback: track the specific touch identifier for this magnet
+  let dragging = false;
+  let offsetX = 0, offsetY = 0;
+  let activePointerId = null;
   let activeTouchId = null;
+  let hasMoved = false;
+  const MOVE_THRESHOLD = 6;
 
   function startDrag(clientX, clientY, pointerId){
     dragging = true;
     hasMoved = false;
-    activePointerId = (typeof pointerId !== 'undefined' && pointerId !== null) ? pointerId : null;
+    activePointerId = pointerId ?? null;
     el.style.zIndex = 9999;
+    el.classList.add('dragging');
+    wordBank.classList.add('drag-over-candidate');
     document.body.classList.add('dragging-touch');
+
     const r = el.getBoundingClientRect();
     offsetX = clientX - r.left;
     offsetY = clientY - r.top;
-    el.classList.add('dragging');
-    wordBank.classList.add('drag-over-candidate');
   }
 
   function endDrag(){
-    if(!dragging) return;
     dragging = false;
     activePointerId = null;
     activeTouchId = null;
+    hasMoved = false;
+
     el.style.zIndex = 1;
     el.classList.remove('dragging');
     wordBank.classList.remove('drag-over');
     wordBank.classList.remove('drag-over-candidate');
     document.body.classList.remove('dragging-touch');
-    hasMoved = false;
   }
 
+  /* -------------------------
+     POINTER EVENTS
+     ------------------------- */
   function onPointerDown(e){
     if(e.pointerType === 'mouse' && e.button !== 0) return;
     e.preventDefault();
-    try{ el.setPointerCapture(e.pointerId); }catch(err){}
+    try { el.setPointerCapture(e.pointerId); } catch(err){}
     startDrag(e.clientX, e.clientY, e.pointerId);
   }
 
@@ -658,10 +581,10 @@ function makeMagnetDraggable(magnet){
     let x = e.clientX - offsetX;
     let y = e.clientY - offsetY;
 
-    // detect movement beyond threshold
     if(!hasMoved){
-      const dx = Math.abs(e.clientX - (offsetX + (el.getBoundingClientRect().left || 0)));
-      const dy = Math.abs(e.clientY - (offsetY + (el.getBoundingClientRect().top || 0)));
+      const rect = el.getBoundingClientRect();
+      const dx = Math.abs(e.clientX - (offsetX + rect.left));
+      const dy = Math.abs(e.clientY - (offsetY + rect.top));
       if(Math.sqrt(dx*dx + dy*dy) > MOVE_THRESHOLD) hasMoved = true;
     }
 
@@ -684,7 +607,8 @@ function makeMagnetDraggable(magnet){
     }
 
     const bankRect = wordBank.getBoundingClientRect();
-    if(e.clientX >= bankRect.left && e.clientX <= bankRect.right && e.clientY >= bankRect.top && e.clientY <= bankRect.bottom){
+    if(e.clientX >= bankRect.left && e.clientX <= bankRect.right &&
+       e.clientY >= bankRect.top && e.clientY <= bankRect.bottom){
       wordBank.classList.add('drag-over');
     } else {
       wordBank.classList.remove('drag-over');
@@ -693,8 +617,8 @@ function makeMagnetDraggable(magnet){
 
   function onPointerUp(e){
     if(activePointerId !== null && e.pointerId !== activePointerId) return;
-    try{ el.releasePointerCapture(e.pointerId); }catch(err){}
-    // If the user never moved beyond the threshold, treat this as a click — do not reposition
+    try { el.releasePointerCapture(e.pointerId); } catch(err){}
+
     if(!hasMoved){
       endDrag();
       return;
@@ -706,12 +630,16 @@ function makeMagnetDraggable(magnet){
     const playRect = playArea.getBoundingClientRect();
     const bankRect = wordBank.getBoundingClientRect();
 
-    if(centerX >= playRect.left && centerX <= playRect.right && centerY >= playRect.top && centerY <= playRect.bottom){
+    if(centerX >= playRect.left && centerX <= playRect.right &&
+       centerY >= playRect.top && centerY <= playRect.bottom){
+
       const localX = centerX - playRect.left - el.offsetWidth/2;
       const localY = centerY - playRect.top - el.offsetHeight/2;
+
       magnet.inPlay = true;
       magnet.x = clamp(localX, 0, playRect.width - el.offsetWidth);
       magnet.y = clamp(localY, 0, playRect.height - el.offsetHeight);
+
       playArea.appendChild(el);
       el.style.left = magnet.x + 'px';
       el.style.top = magnet.y + 'px';
@@ -720,12 +648,16 @@ function makeMagnetDraggable(magnet){
       return;
     }
 
-    if(centerX >= bankRect.left && centerX <= bankRect.right && centerY >= bankRect.top && centerY <= bankRect.bottom){
+    if(centerX >= bankRect.left && centerX <= bankRect.right &&
+       centerY >= bankRect.top && centerY <= bankRect.bottom){
+
       const x = Math.round(rand(8, Math.max(80, bankRect.width - 160)));
       const y = Math.round(rand(6, Math.max(20, bankRect.height - 48)));
+
       magnet.inPlay = false;
       magnet.x = x;
       magnet.y = y;
+
       wordBank.appendChild(el);
       el.style.left = x + 'px';
       el.style.top = y + 'px';
@@ -734,39 +666,19 @@ function makeMagnetDraggable(magnet){
       return;
     }
 
-    if(magnet.inPlay){
-      const playRect2 = playArea.getBoundingClientRect();
-      magnet.x = clamp(magnet.x, 0, playRect2.width - el.offsetWidth);
-      magnet.y = clamp(magnet.y, 0, playRect2.height - el.offsetHeight);
-      playArea.appendChild(el);
-      el.style.left = magnet.x + 'px';
-      el.style.top = magnet.y + 'px';
-      magnet._absolute = false;
-    } else {
-      const bankRect2 = wordBank.getBoundingClientRect();
-      const x = Math.round(rand(8, Math.max(80, bankRect2.width - 160)));
-      const y = Math.round(rand(6, Math.max(20, bankRect2.height - 48)));
-      magnet.inPlay = false;
-      magnet.x = x;
-      magnet.y = y;
-      wordBank.appendChild(el);
-      el.style.left = x + 'px';
-      el.style.top = y + 'px';
-      magnet._absolute = false;
-    }
     endDrag();
   }
 
-  // Touch handlers that correctly track touch.identifier per magnet
+  /* -------------------------
+     TOUCH EVENTS
+     ------------------------- */
   function onTouchStart(ev){
-    // find a changed touch that started on this element (or its children)
     for(let i=0;i<ev.changedTouches.length;i++){
       const t = ev.changedTouches[i];
-      // prefer touches whose target is the magnet element (or inside it)
       if(t.target === el || el.contains(t.target)){
         ev.preventDefault();
         activeTouchId = t.identifier;
-        startDrag(t.clientX, t.clientY, null); // pointerId null for touch path
+        startDrag(t.clientX, t.clientY, null);
         break;
       }
     }
@@ -774,11 +686,13 @@ function makeMagnetDraggable(magnet){
 
   function onTouchMove(ev){
     if(!dragging || activeTouchId === null) return;
-    // find the touch with our identifier
+
     let found = null;
     for(let i=0;i<ev.touches.length;i++){
-      const t = ev.touches[i];
-      if(t.identifier === activeTouchId){ found = t; break; }
+      if(ev.touches[i].identifier === activeTouchId){
+        found = ev.touches[i];
+        break;
+      }
     }
     if(!found) return;
     ev.preventDefault();
@@ -786,10 +700,10 @@ function makeMagnetDraggable(magnet){
     let x = found.clientX - offsetX;
     let y = found.clientY - offsetY;
 
-    // detect movement beyond threshold
     if(!hasMoved){
-      const dx = Math.abs(found.clientX - (offsetX + (el.getBoundingClientRect().left || 0)));
-      const dy = Math.abs(found.clientY - (offsetY + (el.getBoundingClientRect().top || 0)));
+      const rect = el.getBoundingClientRect();
+      const dx = Math.abs(found.clientX - (offsetX + rect.left));
+      const dy = Math.abs(found.clientY - (offsetY + rect.top));
       if(Math.sqrt(dx*dx + dy*dy) > MOVE_THRESHOLD) hasMoved = true;
     }
 
@@ -812,7 +726,8 @@ function makeMagnetDraggable(magnet){
     }
 
     const bankRect = wordBank.getBoundingClientRect();
-    if(found.clientX >= bankRect.left && found.clientX <= bankRect.right && found.clientY >= bankRect.top && found.clientY <= bankRect.bottom){
+    if(found.clientX >= bankRect.left && found.clientX <= bankRect.right &&
+       found.clientY >= bankRect.top && found.clientY <= bankRect.bottom){
       wordBank.classList.add('drag-over');
     } else {
       wordBank.classList.remove('drag-over');
@@ -821,274 +736,36 @@ function makeMagnetDraggable(magnet){
 
   function onTouchEnd(ev){
     if(!dragging || activeTouchId === null) return;
-    // if our touch ended, finish the drag
+
     for(let i=0;i<ev.changedTouches.length;i++){
       const t = ev.changedTouches[i];
       if(t.identifier === activeTouchId){
         ev.preventDefault();
-        // if the user never moved beyond the threshold, treat as click — do nothing
+
         if(!hasMoved){
           endDrag();
           return;
         }
-        // emulate pointer up flow using the last known magnet.x/magnet.y
-        const fakeEvent = { pointerId: null };
-        onPointerUp(fakeEvent);
+
+        onPointerUp({ pointerId: null });
         return;
       }
     }
   }
 
-  // Attach listeners
+  /* -------------------------
+     EVENT LISTENERS
+     ------------------------- */
   el.addEventListener('pointerdown', onPointerDown, { passive: false });
   window.addEventListener('pointermove', onPointerMove, { passive: false });
   window.addEventListener('pointerup', onPointerUp, { passive: false });
 
-  // Touch listeners: element-level start, global move/end
   el.addEventListener('touchstart', onTouchStart, { passive: false });
   window.addEventListener('touchmove', onTouchMove, { passive: false });
   window.addEventListener('touchend', onTouchEnd, { passive: false });
   window.addEventListener('touchcancel', onTouchEnd, { passive: false });
 }
 
-  }
-
-  function endDrag(){
-    if(!dragging) return;
-    dragging = false;
-    activePointerId = null;
-    el.style.zIndex = 1;
-    el.classList.remove('dragging');
-    wordBank.classList.remove('drag-over');
-    wordBank.classList.remove('drag-over-candidate');
-    document.body.classList.remove('dragging-touch');
-    hasMoved = false;
-  }
-
-  function onPointerDown(e){
-    if(e.pointerType === 'mouse' && e.button !== 0) return;
-    e.preventDefault();
-    try{ el.setPointerCapture(e.pointerId); }catch(err){}
-    startDrag(e.clientX, e.clientY, e.pointerId);
-  }
-
-  function onPointerMove(e){
-    if(!dragging) return;
-    if(activePointerId !== null && e.pointerId !== activePointerId) return;
-    e.preventDefault();
-
-    let x = e.clientX - offsetX;
-    let y = e.clientY - offsetY;
-
-    // detect movement beyond threshold
-    if(!hasMoved){
-      const dx = Math.abs(e.clientX - (offsetX + (el.getBoundingClientRect().left || 0)));
-      const dy = Math.abs(e.clientY - (offsetY + (el.getBoundingClientRect().top || 0)));
-      if(Math.sqrt(dx*dx + dy*dy) > MOVE_THRESHOLD) hasMoved = true;
-    }
-
-    const vw = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
-    const vh = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
-
-    x = clamp(x, 0, vw - el.offsetWidth);
-    y = clamp(y, 0, vh - el.offsetHeight);
-
-    if(!magnet._absolute && hasMoved){
-      magnet._absolute = true;
-      document.body.appendChild(el);
-    }
-
-    // only update position while actually moving
-    if(hasMoved){
-      el.style.left = x + 'px';
-      el.style.top = y + 'px';
-      magnet.x = x;
-      magnet.y = y;
-    }
-
-    const bankRect = wordBank.getBoundingClientRect();
-    if(e.clientX >= bankRect.left && e.clientX <= bankRect.right && e.clientY >= bankRect.top && e.clientY <= bankRect.bottom){
-      wordBank.classList.add('drag-over');
-    } else {
-      wordBank.classList.remove('drag-over');
-    }
-  }
-
-  function onPointerUp(e){
-    if(activePointerId !== null && e.pointerId !== activePointerId) return;
-    try{ el.releasePointerCapture(e.pointerId); }catch(err){}
-    // If the user never moved beyond the threshold, treat this as a click — do not reposition
-    if(!hasMoved){
-      endDrag();
-      return;
-    }
-
-    const centerX = magnet.x + el.offsetWidth/2;
-    const centerY = magnet.y + el.offsetHeight/2;
-
-    const playRect = playArea.getBoundingClientRect();
-    const bankRect = wordBank.getBoundingClientRect();
-
-    if(centerX >= playRect.left && centerX <= playRect.right && centerY >= playRect.top && centerY <= playRect.bottom){
-      const localX = centerX - playRect.left - el.offsetWidth/2;
-      const localY = centerY - playRect.top - el.offsetHeight/2;
-      magnet.inPlay = true;
-      magnet.x = clamp(localX, 0, playRect.width - el.offsetWidth);
-      magnet.y = clamp(localY, 0, playRect.height - el.offsetHeight);
-      playArea.appendChild(el);
-      el.style.left = magnet.x + 'px';
-      el.style.top = magnet.y + 'px';
-      magnet._absolute = false;
-      endDrag();
-      return;
-    }
-
-    if(centerX >= bankRect.left && centerX <= bankRect.right && centerY >= bankRect.top && centerY <= bankRect.bottom){
-      const x = Math.round(rand(8, Math.max(80, bankRect.width - 160)));
-      const y = Math.round(rand(6, Math.max(20, bankRect.height - 48)));
-      magnet.inPlay = false;
-      magnet.x = x;
-      magnet.y = y;
-      wordBank.appendChild(el);
-      el.style.left = x + 'px';
-      el.style.top = y + 'px';
-      magnet._absolute = false;
-      endDrag();
-      return;
-    }
-
-    if(magnet.inPlay){
-      const playRect2 = playArea.getBoundingClientRect();
-      magnet.x = clamp(magnet.x, 0, playRect2.width - el.offsetWidth);
-      magnet.y = clamp(magnet.y, 0, playRect2.height - el.offsetHeight);
-      playArea.appendChild(el);
-      el.style.left = magnet.x + 'px';
-      el.style.top = magnet.y + 'px';
-      magnet._absolute = false;
-    } else {
-      const bankRect2 = wordBank.getBoundingClientRect();
-      const x = Math.round(rand(8, Math.max(80, bankRect2.width - 160)));
-      const y = Math.round(rand(6, Math.max(20, bankRect2.height - 48)));
-      magnet.inPlay = false;
-      magnet.x = x;
-      magnet.y = y;
-      wordBank.appendChild(el);
-      el.style.left = x + 'px';
-      el.style.top = y + 'px';
-      magnet._absolute = false;
-    }
-    endDrag();
-  }
-
-  // Touch fallback
-  function onTouchStart(ev){
-    if(ev.touches && ev.touches.length){
-      const t = ev.touches[0];
-      ev.preventDefault();
-      startDrag(t.clientX, t.clientY, 'touch');
-    }
-  }
-  function onTouchMove(ev){
-    if(!dragging) return;
-    if(ev.touches && ev.touches.length){
-      const t = ev.touches[0];
-      ev.preventDefault();
-      let x = t.clientX - offsetX;
-      let y = t.clientY - offsetY;
-
-      // detect movement beyond threshold
-      if(!hasMoved){
-        const dx = Math.abs(t.clientX - (offsetX + (el.getBoundingClientRect().left || 0)));
-        const dy = Math.abs(t.clientY - (offsetY + (el.getBoundingClientRect().top || 0)));
-        if(Math.sqrt(dx*dx + dy*dy) > MOVE_THRESHOLD) hasMoved = true;
-      }
-
-      const vw = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
-      const vh = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
-
-      x = clamp(x, 0, vw - el.offsetWidth);
-      y = clamp(y, 0, vh - el.offsetHeight);
-
-      if(!magnet._absolute && hasMoved){
-        magnet._absolute = true;
-        document.body.appendChild(el);
-      }
-
-      if(hasMoved){
-        el.style.left = x + 'px';
-        el.style.top = y + 'px';
-        magnet.x = x;
-        magnet.y = y;
-      }
-
-      const bankRect = wordBank.getBoundingClientRect();
-      if(t.clientX >= bankRect.left && t.clientX <= bankRect.right && t.clientY >= bankRect.top && t.clientY <= bankRect.bottom){
-        wordBank.classList.add('drag-over');
-      } else {
-        wordBank.classList.remove('drag-over');
-      }
-    }
-  }
-  function onTouchEnd(ev){
-    if(!dragging) return;
-    ev.preventDefault();
-    // if no meaningful move happened, treat as click and do nothing
-    if(!hasMoved){
-      endDrag();
-      return;
-    }
-    // call pointer up logic with a fake pointerId to match checks
-    onPointerUp({ pointerId: activePointerId });
-  }
-
-  el.addEventListener('pointerdown', onPointerDown, { passive: false });
-  window.addEventListener('pointermove', onPointerMove, { passive: false });
-  window.addEventListener('pointerup', onPointerUp, { passive: false });
-
-  el.addEventListener('touchstart', onTouchStart, { passive: false });
-  window.addEventListener('touchmove', onTouchMove, { passive: false });
-  window.addEventListener('touchend', onTouchEnd, { passive: false });
-  window.addEventListener('touchcancel', onTouchEnd, { passive: false });
-/* -------------------------
-   marker dragging
-   ------------------------- */
-function makeMarkerDraggable(marker){
-  const el = marker.el;
-  let dragging = false, offsetX = 0, offsetY = 0, activePointerId = null;
-
-  function startDrag(clientX, clientY, pointerId){
-    dragging = true;
-    activePointerId = pointerId || null;
-    document.body.classList.add('dragging-touch');
-    const r = el.getBoundingClientRect();
-    offsetX = clientX - r.left;
-    offsetY = clientY - r.top;
-  }
-
-  // your onPointerMove, onPointerUp, onTouchStart, onTouchMove, onTouchEnd
-  // ALL stay inside this function
-
-} // ← this closes makeMarkerDraggable properly
-
-
-  function endDrag(){ dragging = false; activePointerId = null; document.body.classList.remove('dragging-touch'); }
-
-  function onPointerDown(e){ if(e.pointerType === 'mouse' && e.button !== 0) return; e.preventDefault(); try{ el.setPointerCapture(e.pointerId); }catch(err){} startDrag(e.clientX, e.clientY, e.pointerId); }
-  function onPointerMove(e){ if(!dragging) return; if(activePointerId !== null && e.pointerId !== activePointerId) return; e.preventDefault(); const playRect = playArea.getBoundingClientRect(); let x = e.clientX - playRect.left - offsetX; let y = e.clientY - playRect.top - offsetY; x = clamp(x, 0, playRect.width - el.offsetWidth); y = clamp(y, 0, playRect.height - el.offsetHeight); marker.x = x; marker.y = y; el.style.left = x + 'px'; el.style.top = y + 'px'; }
-  function onPointerUp(e){ if(activePointerId !== null && e.pointerId !== activePointerId) return; try{ el.releasePointerCapture(e.pointerId); }catch(err){} endDrag(); }
-
-  function onTouchStart(ev){ if(ev.touches && ev.touches.length){ const t = ev.touches[0]; ev.preventDefault(); startDrag(t.clientX, t.clientY, 'touch'); } }
-  function onTouchMove(ev){ if(!dragging) return; if(ev.touches && ev.touches.length){ const t = ev.touches[0]; ev.preventDefault(); const playRect = playArea.getBoundingClientRect(); let x = t.clientX - playRect.left - offsetX; let y = t.clientY - playRect.top - offsetY; x = clamp(x, 0, playRect.width - el.offsetWidth); y = clamp(y, 0, playRect.height - el.offsetHeight); marker.x = x; marker.y = y; el.style.left = x + 'px'; el.style.top = y + 'px'; } }
-  function onTouchEnd(ev){ if(!dragging) return; ev.preventDefault(); endDrag(); }
-
-  el.addEventListener('pointerdown', onPointerDown, { passive: false });
-  window.addEventListener('pointermove', onPointerMove, { passive: false });
-  window.addEventListener('pointerup', onPointerUp, { passive: false });
-
-el.addEventListener('touchstart', onTouchStart, { passive: false });
-window.addEventListener('touchmove', onTouchMove, { passive: false });
-window.addEventListener('touchend', onTouchEnd, { passive: false });
-window.addEventListener('touchcancel', onTouchEnd, { passive: false });
 
 /* -----------------------------
     round flow & ratings
