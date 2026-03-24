@@ -610,15 +610,17 @@ function makeMagnetDraggable(magnet){
     }
 
     const bankRect = wordBank.getBoundingClientRect();
-    if(e.clientX >= bankRect.left && e.clientX <= bankRect.right &&
-       e.clientY >= bankRect.top && e.clientY <= bankRect.bottom){
-      wordBank.classList.add('drag-over');
-    } else {
-      wordBank.classList.remove('drag-over');
-    
+if(e.clientX >= bankRect.left && e.clientX <= bankRect.right &&
+   e.clientY >= bankRect.top && e.clientY <= bankRect.bottom){
+  wordBank.classList.add('drag-over');
+} else {
+  wordBank.classList.remove('drag-over');
+}
 
+}  // ← THIS ONE WAS MISSING
 
-  function onPointerUp(e){
+function onPointerUp(e){
+
     if(activePointerId !== null && e.pointerId !== activePointerId) return;
     try { el.releasePointerCapture(e.pointerId); } catch(err){}
 
