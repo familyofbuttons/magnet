@@ -6,7 +6,6 @@
 <title>Magnetic Mayhem — Widescreen Optimized</title>
 
 <link rel="manifest" href="manifest.json">
-
 <meta name="theme-color" content="#ffb347">
 <link rel="icon" href="pwa-icons/icon-192.png">
 
@@ -138,6 +137,15 @@
     position:relative;
     overflow:hidden;
     padding:12px;
+  }
+
+  .play-hint{
+    position:absolute;
+    top:12px;
+    left:12px;
+    font-size:0.9rem;
+    color:rgba(255,255,255,0.6);
+    pointer-events:none;
   }
 
   .player-marker{
@@ -278,6 +286,13 @@
   .rating-note{ font-size:0.82rem; color:#666; }
   .score-pill{ display:inline-block; padding:6px 10px; border-radius:999px; background:rgba(255,255,255,0.06); margin-right:6px; font-weight:700; color:#fff; }
 
+  .timer-display{font-size:0.9rem;color:#fff;}
+  .timer-wrap{width:120px;height:6px;border-radius:999px;background:rgba(255,255,255,0.12);overflow:hidden;}
+  .timer-bar{height:100%;background:linear-gradient(90deg,#4cd964,#ffb347);transition:width 0.2s ease;}
+
+  .controls-row{margin-top:8px;display:flex;justify-content:space-between;align-items:center;}
+  .message{font-size:0.9rem;color:var(--muted);}
+
   /* highlight wrapper used for winner / head player */
   .player-highlight{
     box-shadow: 0 0 0 4px rgba(255,255,255,0.06), 0 10px 30px rgba(0,0,0,0.25);
@@ -345,11 +360,34 @@
 <script>
 (function(){
 
+// --- DOM HELPERS / UTILS ---------------------------------------------------
+function $(sel, root){ return (root || document).querySelector(sel); }
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]] = [arr[j],arr[i]];
+  }
+  return arr;
+}
+function rand(min,max){ return Math.random()*(max-min)+min; }
+function clamp(v,min,max){ return v<min?min:(v>max?max:v); }
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, s=>({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[s]));
+}
+function setMessage(msg){
+  const el = document.getElementById('message');
+  if(el) el.textContent = msg;
+}
+
+// --- CONSTANTS -------------------------------------------------------------
 const PROFILE_KEY = 'mm_profiles_jounty';
 const SCORE_KEY = 'mm_scores_jounty';
 const POOL_SIZE = 10000;
 const ROUND_WORD_COUNT = 200;
 const VISIBLE_MAGNETS = 300;
+
 const SENSIBLE_PHRASES = [
   "chicken nugget","starbucks coffee","french toast","cheese grater","coffee shop","train station",
   "post office","phone charger","garden gate","garden shed","movie theater","bus stop","school bus",
@@ -399,7 +437,6 @@ const ING_WORDS = [
 
 const PUNCTUATION = ['.', ',', '?', '!'];
 
-/* Reduced connectors list (fewer repeats) but still present each game */
 const CONNECTORS = [
   'a','a',
   'it','it',
@@ -411,6 +448,45 @@ const CONNECTORS = [
   'if','when','why','how'
 ];
 
+const COMMON_WORDS = [
+  'and','the','a','it','is','was','has','have','to','in','on','at','if','but','because','when','then'
+];
+
+const DEFAULT_PLAYER_NAMES = ['Player 1','Player 2','Player 3','Player 4'];
+
+// --- STATE -----------------------------------------------------------------
+let BIG_POOL = null;
+let chosenPlayers = 2;
+let chosenRounds = 4;
+let chosenTime = 90;
+let chosenTheme = 'dark';
+
+let uploadedImages = [null,null,null,null];
+let playerNames = DEFAULT_PLAYER_NAMES.slice();
+let magnets = [];
+let markers = [];
+let scores = [0,0,0,0];
+
+let roundActive = false;
+let currentRound = 0;
+let totalRounds = 0;
+let timeLeft = 0;
+let timer = null;
+let magnetId = 1;
+
+// DOM refs
+const wordBank = document.getElementById('wordBank');
+const playArea = document.getElementById('playArea');
+const timerDisplay = document.getElementById('timerDisplay');
+const timerBar = document.getElementById('timerBar');
+const startGameWrap = document.getElementById('startGameWrap');
+const scoreboardEl = document.getElementById('scoreboard');
+const themeLabel = document.getElementById('themeLabel');
+const reshuffleBtn = document.getElementById('reshuffle');
+const wizard = document.getElementById('wizard');
+const wizardCard = document.getElementById('wizardCard');
+
+// --- POOL BUILDING ---------------------------------------------------------
 function buildBigPool(){
   if(BIG_POOL) return BIG_POOL;
 
@@ -422,8 +498,6 @@ function buildBigPool(){
 
   for(let w of ING_WORDS) pool.push(w);
   for(let p of PUNCTUATION) pool.push(p);
-
-  // Add connectors but fewer repeats than before
   for(let c of CONNECTORS) pool.push(c);
 
   for(let i=0;i<3000;i++){
@@ -457,6 +531,7 @@ function buildBigPool(){
   return BIG_POOL;
 }
 
+// --- THEME -----------------------------------------------------------------
 function applyTheme(name){
   chosenTheme = name;
   themeLabel.textContent = 'Theme: ' + ({
@@ -494,6 +569,10 @@ function applyTheme(name){
     document.documentElement.style.setProperty('--accent','#ffb347');
   }
 }
+
+// --- WIZARD -----------------------------------------------------------------
+let wizardStep = 0;
+
 function openWizard(){
   try{
     document.querySelectorAll('.modal-backdrop').forEach(n=>{
@@ -736,8 +815,8 @@ function renderWizard(){
     return;
   }
 }
-// --- PROFILE STORAGE --------------------------------------------------------
 
+// --- PROFILE STORAGE --------------------------------------------------------
 function loadProfiles(){
   try{
     const raw = localStorage.getItem(PROFILE_KEY);
@@ -768,7 +847,6 @@ function deleteProfile(id){
 }
 
 // --- SCORE STORAGE ----------------------------------------------------------
-
 function loadScores(){
   try{
     const raw = localStorage.getItem(SCORE_KEY);
@@ -787,7 +865,6 @@ function saveScores(arr){
 }
 
 // --- BOARD SETUP ------------------------------------------------------------
-
 function renderStartButton(){
   startGameWrap.innerHTML = '';
   const btn = document.createElement('div');
@@ -878,29 +955,23 @@ function generateWordMagnets(){
   magnetId = 1;
 
   const pool = buildBigPool();
-
-  // Ensure we include a modest number of connectors (reduced) and more 'things'
   const chosen = [];
 
-  // Always include a selection of COMMON_WORDS (allow duplicates for connectors but limited)
   for(let w of COMMON_WORDS){
     chosen.push(w);
   }
 
-  // Add a small number of explicit connector repeats to guarantee multiple connecting words but not too many
   for(let c of CONNECTORS){
     if(Math.random() < 0.5){
       chosen.push(c);
     }
   }
 
-  // Add more 'things' (nouns/items) to increase variety
   const things = ["cat","dog","potato","nipple","frog","hammer","guitar","plant","pot","dressing","gown","pizza","glitter","cheese","pants","jumper","kettle","pills","drugs","music","bath","soap","tree","flower","watch","alexa","bleach","car","bus","train","plane"];
   for(let t of things){
     if(Math.random() < 0.85) chosen.push(t);
   }
 
-  // Fill up to ROUND_WORD_COUNT with random picks (allow duplicates)
   while(chosen.length < ROUND_WORD_COUNT){
     const idx = Math.floor(Math.random() * pool.length);
     chosen.push(pool[idx]);
@@ -944,7 +1015,8 @@ function generateWordMagnets(){
     makeMagnetDraggable(magnet);
   }
 }
-// --- DRAGGING LOGIC (pointer + touch friendly) -----------------------------
+
+// --- DRAGGING LOGIC (MAGNETS) ----------------------------------------------
 function makeMagnetDraggable(magnet){
   const el = magnet.el;
   let dragging=false, offsetX=0, offsetY=0, activePointerId = null;
@@ -1017,7 +1089,6 @@ function makeMagnetDraggable(magnet){
   function onPointerUp(e){
     if(activePointerId !== null && e.pointerId !== activePointerId) return;
     try{ el.releasePointerCapture(e.pointerId); }catch(err){}
-    // compute center and decide playArea vs wordBank placement
     const centerX = magnet.x + el.offsetWidth/2;
     const centerY = magnet.y + el.offsetHeight/2;
 
@@ -1084,7 +1155,6 @@ function makeMagnetDraggable(magnet){
     endDrag();
   }
 
-  // Touch fallback
   function onTouchStart(ev){
     if(ev.touches && ev.touches.length){
       const t = ev.touches[0];
@@ -1128,7 +1198,6 @@ function makeMagnetDraggable(magnet){
   function onTouchEnd(ev){
     if(!dragging) return;
     ev.preventDefault();
-    // call pointer up logic
     onPointerUp({ pointerId: activePointerId });
   }
 
@@ -1142,7 +1211,7 @@ function makeMagnetDraggable(magnet){
   window.addEventListener('touchcancel', onTouchEnd, { passive: false });
 }
 
-// --- MARKER DRAGGING (pointer + touch friendly) -----------------------------
+// --- MARKER DRAGGING -------------------------------------------------------
 function makeMarkerDraggable(marker){
   const el = marker.el;
   let dragging=false, offsetX=0, offsetY=0, activePointerId = null;
@@ -1236,7 +1305,7 @@ function makeMarkerDraggable(marker){
   window.addEventListener('touchcancel', onTouchEnd, { passive: false });
 }
 
-// --- ROUND FLOW -------------------------------------------------------------
+// --- ROUND FLOW ------------------------------------------------------------
 function startRound(){
   if(roundActive) return;
 
@@ -1297,8 +1366,8 @@ function endRound(){
 
   setTimeout(()=>{ openRatingsModal(); }, 200);
 }
-// --- CLUSTERING, SENTENCES, RATINGS ----------------------------------------
 
+// --- CLUSTERING / SENTENCES / RATINGS --------------------------------------
 function clusterMagnets(eps){
   const threshold = eps || 140;
   const inPlay = magnets.filter(m => m.inPlay && m.el);
@@ -1463,7 +1532,6 @@ function openRatingsModal(){
   modal.appendChild(card);
   document.body.appendChild(modal);
 
-  // visually add player color highlights to rating rows (pre-submit)
   for(let p=0;p<chosenPlayers;p++){
     const row = card.querySelector(`.rating-row[data-player="${p}"]`);
     if(row){
@@ -1581,7 +1649,6 @@ function showWinnerAndAdvance(winnerData){
   modal.appendChild(card);
   document.body.appendChild(modal);
 
-  // highlight winner(s) visually on the modal
   if(winnerData != null){
     const winners = Array.isArray(winnerData) ? winnerData : [winnerData];
     winners.forEach(wi=>{
@@ -1738,13 +1805,7 @@ function renderScoreboardInline(showLabels){
   return html;
 }
 
-reshuffleBtn.addEventListener('click', ()=>{
-  generateWordMagnets();
-  setMessage('New word mix loaded for this round.');
-});
-
-// --- PROFILE MANAGER ------------------------------------------------------
-
+// --- PROFILE MANAGER -------------------------------------------------------
 function showProfileManager(targetIndex, onClose){
   const modal = document.createElement('div'); modal.className='modal-backdrop';
   const card = document.createElement('div'); card.className='modal-card';
@@ -1814,7 +1875,7 @@ function showProfileManager(targetIndex, onClose){
   });
 }
 
-// Finish setup handler
+// --- FINISH SETUP BINDER ---------------------------------------------------
 document.addEventListener('click', function finishSetupBinder(e){
   const finishBtn = document.getElementById('finishSetup');
   if(finishBtn && !finishBtn._bound){
@@ -1854,8 +1915,7 @@ document.addEventListener('click', function finishSetupBinder(e){
   }
 });
 
-// --- INIT -----------------------------------------------------------------
-
+// --- INIT ------------------------------------------------------------------
 function init(){
   buildBigPool();
   scores = loadScores().slice(0,4);
@@ -1864,6 +1924,11 @@ function init(){
   openWizard();
 }
 
+reshuffleBtn.addEventListener('click', ()=>{
+  generateWordMagnets();
+  setMessage('New word mix loaded for this round.');
+});
+
 window.buildBigPool = buildBigPool;
 window.setupBoard = setupBoard;
 
@@ -1871,7 +1936,8 @@ init();
 
 })();
 </script>
- <script>
+
+<script>
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('service-worker.js')
     .catch(err => console.log('SW registration failed', err));
