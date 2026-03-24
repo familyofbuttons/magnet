@@ -1049,14 +1049,12 @@ function makeMagnetDraggable(magnet){
   window.addEventListener('touchmove', onTouchMove, { passive: false });
   window.addEventListener('touchend', onTouchEnd, { passive: false });
   window.addEventListener('touchcancel', onTouchEnd, { passive: false });
-}
-
 /* -------------------------
    marker dragging
    ------------------------- */
 function makeMarkerDraggable(marker){
   const el = marker.el;
-  let dragging=false, offsetX=0, offsetY=0, activePointerId = null;
+  let dragging = false, offsetX = 0, offsetY = 0, activePointerId = null;
 
   function startDrag(clientX, clientY, pointerId){
     dragging = true;
@@ -1066,6 +1064,10 @@ function makeMarkerDraggable(marker){
     offsetX = clientX - r.left;
     offsetY = clientY - r.top;
   }
+
+  // ...the rest of your makeMarkerDraggable code continues here...
+}
+
 
   function endDrag(){ dragging = false; activePointerId = null; document.body.classList.remove('dragging-touch'); }
 
