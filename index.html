@@ -3,8 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Magnetic Mayhem — Widescreen Optimized</title>
-
+<title>Magnetic Mayhem — Fixed Build</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#ffb347">
 <link rel="icon" href="pwa-icons/icon-192.png">
@@ -139,15 +138,6 @@
     padding:12px;
   }
 
-  .play-hint{
-    position:absolute;
-    top:12px;
-    left:12px;
-    font-size:0.9rem;
-    color:rgba(255,255,255,0.6);
-    pointer-events:none;
-  }
-
   .player-marker{
     position:absolute;
     width:92px;
@@ -172,14 +162,7 @@
   .marker-p3{background:var(--p3)}
   .marker-p4{background:var(--p4)}
 
-  /* ensure profile images inside markers don't appear zoomed */
-  .marker-img{
-    width:78%;
-    height:78%;
-    object-fit:contain;
-    border-radius:50%;
-    display:block;
-  }
+  .marker-img{ width:78%; height:78%; object-fit:contain; border-radius:50%; display:block; }
 
   .wizard-overlay{
     position:fixed;
@@ -188,7 +171,7 @@
     align-items:center;
     justify-content:center;
     background:rgba(0,0,0,0.6);
-    z-index:9999;
+    z-index:10050;
   }
 
   .wizard-card{
@@ -201,57 +184,17 @@
     box-shadow:0 20px 60px rgba(0,0,0,0.7);
   }
 
-  /* --- JAUNTY TILES (restored) --- */
-  .jounty-row{
-    display:flex;
-    gap:12px;
-    align-items:center;
-    justify-content:center;
-    flex-wrap:wrap;
-    margin-top:16px;
-  }
-
-  .jounty-tile{
-    min-width:120px;
-    padding:18px 20px;
-    border-radius:14px;
-    background:linear-gradient(180deg,#fff,#f3f3f3);
-    color:#111;
-    font-weight:900;
-    cursor:pointer;
-    box-shadow:0 10px 30px rgba(0,0,0,0.25);
-    border:1px solid rgba(0,0,0,0.06);
-    transition: transform .12s ease, box-shadow .12s ease;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    text-align:center;
-    user-select:none;
-  }
-
-  .jounty-tile.selected{
-    transform: translateY(-6px);
-    box-shadow:0 18px 40px rgba(0,0,0,0.28);
-    background:linear-gradient(180deg,#fff8e6,#fff2d1);
-  }
-
-  .jounty-tile.small{
-    padding:10px 12px;
-    min-width:90px;
-    font-weight:700;
-  }
-
-  .modal-backdrop{
+  .settings-overlay{
     position:fixed;
     inset:0;
-    background:rgba(0,0,0,0.6);
     display:flex;
     align-items:center;
     justify-content:center;
-    z-index:10010;
+    background:rgba(0,0,0,0.6);
+    z-index:10100; /* above wizard */
   }
 
-  .modal-card{
+  .settings-card{
     width:92%;
     max-width:820px;
     border-radius:14px;
@@ -262,26 +205,14 @@
     border: 1px solid rgba(0,0,0,0.04);
   }
 
-  .modal-magnet{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    padding:6px 10px;
-    margin:4px 6px 4px 0;
-    border-radius:999px;
-    background: linear-gradient(180deg,#fff,#f3f3f3);
-    color:#111;
-    font-weight:800;
-    border:1px solid rgba(0,0,0,0.06);
-    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
-    font-size:0.9rem;
-  }
-
+  .jounty-row{ display:flex; gap:12px; align-items:center; justify-content:center; flex-wrap:wrap; margin-top:16px; }
+  .jounty-tile{ min-width:120px; padding:18px 20px; border-radius:14px; background:linear-gradient(180deg,#fff,#f3f3f3); color:#111; font-weight:900; cursor:pointer; box-shadow:0 10px 30px rgba(0,0,0,0.25); border:1px solid rgba(0,0,0,0.06); transition: transform .12s ease, box-shadow .12s ease; display:flex; align-items:center; justify-content:center; text-align:center; user-select:none; }
+  .jounty-tile.selected{ transform: translateY(-6px); box-shadow:0 18px 40px rgba(0,0,0,0.28); background:linear-gradient(180deg,#fff8e6,#fff2d1); }
+  .modal-magnet{ display:inline-flex; align-items:center; justify-content:center; padding:6px 10px; margin:4px 6px 4px 0; border-radius:999px; background: linear-gradient(180deg,#fff,#f3f3f3); color:#111; font-weight:800; border:1px solid rgba(0,0,0,0.06); box-shadow: 0 6px 18px rgba(0,0,0,0.12); font-size:0.9rem; }
   .rating-grid{ display:flex; flex-direction:column; gap:14px; }
   .rating-row{ display:flex; gap:12px; align-items:flex-start; justify-content:space-between; }
   .pill{ appearance:none; border:1px solid rgba(0,0,0,0.06); background:linear-gradient(180deg,#fff,#f7f7f9); padding:8px 10px; border-radius:999px; margin:0 4px; cursor:pointer; font-weight:800; color:#222; transition: transform .08s ease, box-shadow .08s ease, background .12s ease; }
-  .pill:hover{ transform: translateY(-2px); box-shadow: 0 8px 18px rgba(0,0,0,0.12); }
-  .pill.selected{ background: linear-gradient(90deg,#ffd93b,#ffb347); color:#2b1300; border-color: rgba(0,0,0,0.08); box-shadow: 0 14px 36px rgba(255,180,60,0.18); }
+  .pill.selected{ background: linear-gradient(90deg,#ffd93b,#ffb347); color:#2b1300; }
   .rating-controls{ display:flex; flex-direction:column; align-items:flex-end; gap:8px; min-width:140px; }
   .rating-note{ font-size:0.82rem; color:#666; }
   .score-pill{ display:inline-block; padding:6px 10px; border-radius:999px; background:rgba(255,255,255,0.06); margin-right:6px; font-weight:700; color:#fff; }
@@ -293,17 +224,12 @@
   .controls-row{margin-top:8px;display:flex;justify-content:space-between;align-items:center;}
   .message{font-size:0.9rem;color:var(--muted);}
 
-  /* highlight wrapper used for winner / head player */
-  .player-highlight{
-    box-shadow: 0 0 0 4px rgba(255,255,255,0.06), 0 10px 30px rgba(0,0,0,0.25);
-    border-radius:12px;
-  }
+  .player-highlight{ box-shadow: 0 0 0 4px rgba(255,255,255,0.06), 0 10px 30px rgba(0,0,0,0.25); border-radius:12px; }
   .player-highlight.p1{ outline: 4px solid rgba(255,75,106,0.18); }
   .player-highlight.p2{ outline: 4px solid rgba(77,166,255,0.18); }
   .player-highlight.p3{ outline: 4px solid rgba(76,217,100,0.18); }
   .player-highlight.p4{ outline: 4px solid rgba(255,217,59,0.18); }
 
-  /* prevent page scroll while dragging on some devices */
   body.dragging-touch { overflow: hidden; touch-action: none; }
 </style>
 </head>
@@ -320,6 +246,8 @@
       <div class="scoreboard" id="scoreboard"></div>
       <div style="width:12px"></div>
       <div class="small" id="themeLabel">Theme: Dark</div>
+      <div style="width:12px"></div>
+      <button id="openSettings" class="btn" title="Manage profiles & settings">Settings</button>
     </div>
   </div>
 
@@ -341,9 +269,7 @@
     <div id="wordBank" class="word-bank"></div>
 
     <div class="controls-row">
-      <div class="message" id="message">
-        Open "New Game" to configure players, rounds and theme.
-      </div>
+      <div class="message" id="message">Open "New Game" to configure players, rounds and theme.</div>
     </div>
   </div>
 
@@ -353,35 +279,72 @@
 
 </div>
 
+<!-- Wizard overlay (setup) -->
 <div id="wizard" class="wizard-overlay" style="display:none">
   <div class="wizard-card" id="wizardCard"></div>
+</div>
+
+<!-- Settings overlay (profiles manager) -->
+<div id="settings" class="settings-overlay" style="display:none">
+  <div class="settings-card" id="settingsCard"></div>
 </div>
 
 <script>
 (function(){
 
-// --- DOM HELPERS / UTILS ---------------------------------------------------
-function $(sel, root){ return (root || document).querySelector(sel); }
-function shuffle(arr){
-  for(let i=arr.length-1;i>0;i--){
-    const j = Math.floor(Math.random()*(i+1));
-    [arr[i],arr[j]] = [arr[j],arr[i]];
-  }
-  return arr;
-}
-function rand(min,max){ return Math.random()*(max-min)+min; }
-function clamp(v,min,max){ return v<min?min:(v>max?max:v); }
-function escapeHtml(str){
-  return String(str).replace(/[&<>"']/g, s=>({
-    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-  }[s]));
-}
-function setMessage(msg){
-  const el = document.getElementById('message');
-  if(el) el.textContent = msg;
-}
+/* -------------------------
+   DOM refs & state
+   ------------------------- */
+const wordBank = document.getElementById('wordBank');
+const playArea = document.getElementById('playArea');
+const scoreboardEl = document.getElementById('scoreboard');
+const themeLabel = document.getElementById('themeLabel');
+const startGameWrap = document.getElementById('startGameWrap');
+const timerDisplay = document.getElementById('timerDisplay');
+const timerBar = document.getElementById('timerBar');
+const messageEl = document.getElementById('message');
+const wizard = document.getElementById('wizard');
+const wizardCard = document.getElementById('wizardCard');
+const settingsOverlay = document.getElementById('settings');
+const settingsCard = document.getElementById('settingsCard');
+const openSettingsBtn = document.getElementById('openSettings');
 
-// --- CONSTANTS -------------------------------------------------------------
+const DEFAULT_PLAYER_NAMES = ['Player 1','Player 2','Player 3','Player 4'];
+
+let BIG_POOL = null;
+let chosenPlayers = 2;
+let chosenRounds = 4;
+let chosenTime = 90;
+let chosenTheme = 'dark';
+
+let wizardStep = 0;
+let uploadedImages = [null,null,null,null];
+let playerNames = DEFAULT_PLAYER_NAMES.slice();
+
+let markers = [];
+let magnets = [];
+let magnetId = 1;
+
+let roundActive = false;
+let currentRound = 0;
+let totalRounds = 0;
+let timeLeft = 0;
+let timer = null;
+let scores = [0,0,0,0];
+
+/* -------------------------
+   helpers
+   ------------------------- */
+function $(sel, root){ return (root || document).querySelector(sel); }
+function clamp(v, a, b){ return v < a ? a : (v > b ? b : v); }
+function rand(min,max){ return Math.random()*(max-min)+min; }
+function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]];} return arr; }
+function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function setMessage(text){ if(messageEl) messageEl.textContent = text; }
+
+/* -------------------------
+   constants & pools
+   ------------------------- */
 const PROFILE_KEY = 'mm_profiles_jounty';
 const SCORE_KEY = 'mm_scores_jounty';
 const POOL_SIZE = 10000;
@@ -396,130 +359,43 @@ const SENSIBLE_PHRASES = [
   "dinner plate","safety pin","first aid","credit card","bank account","movie night","game night",
   "shopping list","grocery store","coffee mug","water bottle","phone case","car keys","house key",
   "train ticket","flight ticket","hotel room","office chair","desk lamp","reading lamp","study desk",
-  "georgie","leslie","beverley","allen","house","home","family",
-  "cat","dog","potato","nipple","frog","hammer","guitar","plant pot","dressing gown","pizza","indian takeaway",
-  "glitter","cheese pants","jumper","kettle","pills","drugs","music","bath","soap","tree","flower","watch","alexa",
-  "bleach","car","bus","train","plane"
+  "georgie","leslie","beverley","allen","house","home","family"
 ];
 
-const SEED = [
-  "allen","gray","beverley","leslie","christine","alex","sam","taylor","jordan","riley",
-  "casey","mandy","moany",
-  "I","I","you","he","she","they","we","it","someone","everyone","nobody",
-  "a","an","the","this","that","these","those","my","your","our","their",
-  "is","are","was","were","has","have","had","does","do","did","its","it's","isn't","hasn't","needs","need",
-  "because","if","but","though","through",
-  "and","or","but","if","because","while","when","then","so",
-  "cat","dog","dragon","robot","teacher","wizard","pirate","ghost","monster",
-  "sandwich","pizza","tea","coffee","cake","sofa","toaster","fridge","banana",
-  "run","jump","dance","sing","whisper","shout","laugh","cry","sleep","wash","kneel","drown","cook","bake","brew","make",
-  "tiny","huge","sparkly","grumpy","sleepy","noisy","silent","awkward","brilliant","ridiculous",
-  "rude","cheeky","horrible","stinky",
-  "on","under","over","inside","outside","behind","next","between","around","before",
-  "pancake","marshmallow","llama","unicorn","spaceship","cupboard","sock","spoon","noodle","pudding",
-  "glitter","chaos","nonsense","mischief","giggle","hiccup","sneeze","burp","rumble","whirlwind",
-  "legendary","impossible","unexpected","epic","wonky","secret","plan","accident","story","memory",
-  "boobies","balls","muff","willy","porn","booze","vodka","beer",
-  "uncle","aunty","sister","brother","dad","mum",
-  "like","hate",
-  "port talbot","swansea","wales","england","reading","swindon","america","australia",
-  "cat","dog","potato","nipple","frog","hammer","guitar","plant","pot","dressing","gown","pizza","glitter","cheese","pants","jumper","kettle","pills","drugs","music","bath","soap","tree","flower","watch","alexa","bleach","car","bus","train","plane"
-];
+const SEED = ["allen","gray","beverley","leslie","christine","alex","sam","taylor","jordan","riley","casey","mandy","moany","I","you","he","she","they","we","it","someone","everyone","nobody","a","an","the","this","that","these","those","my","your","our","their","is","are","was","were","has","have","had","does","do","did","its","it's","isn't","hasn't","needs","need","because","if","but","though","through","and","or","but","if","because","while","when","then","so","cat","dog","dragon","robot","teacher","wizard","pirate","ghost","monster","sandwich","pizza","tea","coffee","cake","sofa","toaster","fridge","banana","run","jump","dance","sing","whisper","shout","laugh","cry","sleep","wash","kneel","drown","cook","bake","brew","make","tiny","huge","sparkly","grumpy","sleepy","noisy","silent","awkward","brilliant","ridiculous","rude","cheeky","horrible","stinky","on","under","over","inside","outside","behind","next","between","around","before","pancake","marshmallow","llama","unicorn","spaceship","cupboard","sock","spoon","noodle","pudding","glitter","chaos","nonsense","mischief","giggle","hiccup","sneeze","burp","rumble","whirlwind","legendary","impossible","unexpected","epic","wonky","secret","plan","accident","story","memory"];
 
-const ING_WORDS = [
-  "running","jumping","dancing","singing","whispering","shouting","laughing","crying","sleeping","eating",
-  "building","breaking","spinning","floating","glowing","searching","finding","carrying","holding","pushing",
-  "pulling","smiling","frowning","cooking","baking","driving","walking","skipping","painting","drawing",
-  "typing","scrolling","listening","talking","breathing","splashing","sneezing",
-  "sleeping","washing","kneeling","drowning","brewing","making","cooked","baked","brewed",
-  "ing","ed","er","es","s","ly","end"
-];
-
+const ING_WORDS = ["running","jumping","dancing","singing","whispering","shouting","laughing","crying","sleeping","eating","building","breaking","spinning","floating","glowing","searching","finding","carrying","holding","pushing","pulling","smiling","frowning","cooking","baking","driving","walking","skipping","painting","drawing","typing","scrolling","listening","talking","breathing","splashing","sneezing","washing","kneeling","drowning","brewing","making","cooked","baked","brewed","ing","ed","er","es","s","ly","end"];
 const PUNCTUATION = ['.', ',', '?', '!'];
+const CONNECTORS = ['a','it','was','at','and','s','ed','er','in','of','on','if','when','why','how'];
+const COMMON_WORDS = ['and','the','a','it','is','was','has','have','to','in','on','at','if','but','because','when','then'];
 
-const CONNECTORS = [
-  'a','a',
-  'it','it',
-  'was','was',
-  'at','at',
-  'and','and',
-  's','ed','er',
-  'in','of','on',
-  'if','when','why','how'
-];
-
-const COMMON_WORDS = [
-  'and','the','a','it','is','was','has','have','to','in','on','at','if','but','because','when','then'
-];
-
-const DEFAULT_PLAYER_NAMES = ['Player 1','Player 2','Player 3','Player 4'];
-
-// --- STATE -----------------------------------------------------------------
-let BIG_POOL = null;
-let chosenPlayers = 2;
-let chosenRounds = 4;
-let chosenTime = 90;
-let chosenTheme = 'dark';
-
-let uploadedImages = [null,null,null,null];
-let playerNames = DEFAULT_PLAYER_NAMES.slice();
-let magnets = [];
-let markers = [];
-let scores = [0,0,0,0];
-
-let roundActive = false;
-let currentRound = 0;
-let totalRounds = 0;
-let timeLeft = 0;
-let timer = null;
-let magnetId = 1;
-
-// DOM refs
-const wordBank = document.getElementById('wordBank');
-const playArea = document.getElementById('playArea');
-const timerDisplay = document.getElementById('timerDisplay');
-const timerBar = document.getElementById('timerBar');
-const startGameWrap = document.getElementById('startGameWrap');
-const scoreboardEl = document.getElementById('scoreboard');
-const themeLabel = document.getElementById('themeLabel');
-const reshuffleBtn = document.getElementById('reshuffle');
-const wizard = document.getElementById('wizard');
-const wizardCard = document.getElementById('wizardCard');
-
-// --- POOL BUILDING ---------------------------------------------------------
+/* -------------------------
+   pool builder
+   ------------------------- */
 function buildBigPool(){
   if(BIG_POOL) return BIG_POOL;
-
   const adjectives = ["bright","dull","fuzzy","slick","ancient","modern","weird","sudden","quiet","loud","mellow","spicy","bitter","sweet","mystic","rusty","neon","frozen","gentle","brave","calm","wild","sly","bold","soft","sharp","warm","cold","golden","silver","rainbow","colourful","stinky","rude","cheeky"];
   const nouns = ["box","chair","river","mountain","lamp","shoe","hat","phone","keyboard","monitor","bottle","window","door","road","cloud","island","bridge","garden","stone","leaf","star","ship","tower","bench","book","street","market","forest","field","ocean","uncle","aunty","sister","brother","dad","mum","beer","vodka","booze","cat","dog","potato","nipple","frog","hammer","guitar","plant","pot","dressing","gown","pizza","glitter","cheese","pants","jumper","kettle","pills","drugs","music","bath","soap","tree","flower","watch","alexa","bleach","car","bus","train","plane"];
   const verbs = ["run","jump","dance","sing","whisper","shout","laugh","cry","sleep","eat","build","break","spin","float","glow","search","find","carry","hold","push","pull","wash","kneel","drown","cook","bake","brew","make"];
 
   const pool = SEED.slice();
-
   for(let w of ING_WORDS) pool.push(w);
   for(let p of PUNCTUATION) pool.push(p);
   for(let c of CONNECTORS) pool.push(c);
 
   for(let i=0;i<3000;i++){
-    const pick = (i % 3 === 0)
-      ? adjectives[i % adjectives.length]
-      : (i % 3 === 1 ? nouns[i % nouns.length] : verbs[i % verbs.length]);
+    const pick = (i % 3 === 0) ? adjectives[i % adjectives.length] : (i % 3 === 1 ? nouns[i % nouns.length] : verbs[i % verbs.length]);
     pool.push(pick);
   }
 
   for(let p of SENSIBLE_PHRASES) pool.push(p);
 
-  const EXTRA = [
-    "more","and","it","is","was","has","had","her","she","him","he","they","them","that","this","in","at","of","coz","per","else","than","if","but",
-    "because","all","it's","wasn't","isn't","hasn't","to","through","though","were","I"
-  ];
+  const EXTRA = ["more","and","it","is","was","has","had","her","she","him","he","they","them","that","this","in","at","of","coz","per","else","than","if","but","because","all","it's","wasn't","isn't","hasn't","to","through","though","were","I"];
   for(let e of EXTRA) pool.push(e);
 
   let i = 0;
   while(pool.length < POOL_SIZE){
-    const pick = (i % 2 === 0)
-      ? nouns[i % nouns.length]
-      : adjectives[i % adjectives.length];
+    const pick = (i % 2 === 0) ? nouns[i % nouns.length] : adjectives[i % adjectives.length];
     pool.push(pick);
     i++;
     if(i > 50000) break;
@@ -531,340 +407,36 @@ function buildBigPool(){
   return BIG_POOL;
 }
 
-// --- THEME -----------------------------------------------------------------
+/* -------------------------
+   theme
+   ------------------------- */
 function applyTheme(name){
   chosenTheme = name;
-  themeLabel.textContent = 'Theme: ' + ({
-    dark:'Dark',
-    pastel:'Pastel',
-    rainbow:'Rainbow',
-    xmas:'Christmas',
-    light:'Light',
-    random:'Random'
-  }[name] || name);
-
-  if(name==='pastel'){
-    document.body.style.background = 'linear-gradient(180deg,#ffe6ff 0%, #fff7f0 60%)';
-    document.documentElement.style.setProperty('--muted','#6b5b6b');
-    document.documentElement.style.setProperty('--accent','#ff9ec3');
-  }
-  else if(name==='rainbow'){
-    document.body.style.background = 'linear-gradient(135deg,#ff4b6a 0%, #ffb347 25%, #ffd93b 50%, #4cd964 75%, #4da6ff 100%)';
-    document.documentElement.style.setProperty('--muted','#f5f5ff');
-    document.documentElement.style.setProperty('--accent','#ff4b6a');
-  }
-  else if(name==='xmas'){
-    document.body.style.background = 'linear-gradient(180deg,#07220f 0%, #0b3b1a 60%)';
-    document.documentElement.style.setProperty('--muted','#cfe8d8');
-    document.documentElement.style.setProperty('--accent','#ff4b4b');
-  }
-  else if(name==='light'){
-    document.body.style.background = 'linear-gradient(180deg,#f6f9fc 0%, #eef6ff 60%)';
-    document.documentElement.style.setProperty('--muted','#4b6b8b');
-    document.documentElement.style.setProperty('--accent','#7fb3ff');
-  }
-  else{
-    document.body.style.background = 'linear-gradient(180deg,#0a0c0f 0%, #06070a 60%)';
-    document.documentElement.style.setProperty('--muted','#bfc4d6');
-    document.documentElement.style.setProperty('--accent','#ffb347');
-  }
+  themeLabel.textContent = 'Theme: ' + ({ dark:'Dark', pastel:'Pastel', rainbow:'Rainbow', xmas:'Christmas', light:'Light' }[name] || name);
+  if(name==='pastel'){ document.body.style.background = 'linear-gradient(180deg,#ffe6ff 0%, #fff7f0 60%)'; document.documentElement.style.setProperty('--muted','#6b5b6b'); document.documentElement.style.setProperty('--accent','#ff9ec3'); }
+  else if(name==='rainbow'){ document.body.style.background = 'linear-gradient(135deg,#ff4b6a 0%, #ffb347 25%, #ffd93b 50%, #4cd964 75%, #4da6ff 100%)'; document.documentElement.style.setProperty('--muted','#f5f5ff'); document.documentElement.style.setProperty('--accent','#ff4b6a'); }
+  else if(name==='xmas'){ document.body.style.background = 'linear-gradient(180deg,#07220f 0%, #0b3b1a 60%)'; document.documentElement.style.setProperty('--muted','#cfe8d8'); document.documentElement.style.setProperty('--accent','#ff4b4b'); }
+  else if(name==='light'){ document.body.style.background = 'linear-gradient(180deg,#f6f9fc 0%, #eef6ff 60%)'; document.documentElement.style.setProperty('--muted','#4b6b8b'); document.documentElement.style.setProperty('--accent','#7fb3ff'); }
+  else { document.body.style.background = 'linear-gradient(180deg,#0a0c0f 0%, #06070a 60%)'; document.documentElement.style.setProperty('--muted','#bfc4d6'); document.documentElement.style.setProperty('--accent','#ffb347'); }
 }
 
-// --- WIZARD -----------------------------------------------------------------
-let wizardStep = 0;
+/* -------------------------
+   profile storage
+   ------------------------- */
+function loadProfiles(){ try{ const raw = localStorage.getItem(PROFILE_KEY); if(!raw) return []; return JSON.parse(raw); }catch(e){ return []; } }
+function saveProfiles(list){ try{ localStorage.setItem(PROFILE_KEY, JSON.stringify(list)); }catch(e){} }
+function addOrUpdateProfile(pr){ const list = loadProfiles(); const idx = list.findIndex(x=>x.id===pr.id); if(idx>=0) list[idx]=pr; else list.push(pr); saveProfiles(list); }
+function deleteProfile(id){ const list = loadProfiles().filter(x=>x.id!==id); saveProfiles(list); }
 
-function openWizard(){
-  try{
-    document.querySelectorAll('.modal-backdrop').forEach(n=>{
-      if(n && n.parentNode) n.parentNode.removeChild(n);
-    });
-  }catch(e){}
+/* -------------------------
+   score storage
+   ------------------------- */
+function loadScores(){ try{ const raw = localStorage.getItem(SCORE_KEY); if(!raw) return [0,0,0,0]; const arr = JSON.parse(raw); return Array.isArray(arr) ? arr : [0,0,0,0]; }catch(e){ return [0,0,0,0]; } }
+function saveScores(arr){ try{ localStorage.setItem(SCORE_KEY, JSON.stringify(arr)); }catch(e){} }
 
-  wizard.style.display = 'flex';
-  wizard.style.pointerEvents = 'auto';
-  wizard.style.zIndex = '10050';
-
-  wizardStep = 0;
-  uploadedImages = [null,null,null,null];
-
-  wizardCard.innerHTML = '';
-  renderWizard();
-
-  setTimeout(()=>{
-    const startBtn = document.getElementById('startNew');
-    if(startBtn) startBtn.focus();
-  }, 60);
-}
-
-function renderWizard(){
-  wizardCard.innerHTML = '';
-
-  if(wizardStep === 0){
-    wizardCard.innerHTML = `
-      <div style="text-align:center">
-        <div style="font-size:1.6rem;font-weight:900;color:#111">Magnetic Mayhem</div>
-        <div class="small" style="color:#444;margin-top:6px">Choose players, rounds, time and theme — then begin.</div>
-        <div class="jounty-row" style="margin-top:18px">
-          <div id="startNew" class="jounty-tile">New Game</div>
-        </div>
-      </div>`;
-    $('#startNew', wizardCard).addEventListener('click', ()=>{
-      wizardStep=1;
-      renderWizard();
-    });
-    return;
-  }
-
-  if(wizardStep === 1){
-    wizardCard.innerHTML = `
-      <div style="text-align:center">
-        <div style="font-size:1.2rem;font-weight:800;color:#111">Players</div>
-        <div class="small" style="color:#333;margin-top:6px">Select how many players will play</div>
-        <div class="jounty-row" id="playerRow"></div>
-        <div style="margin-top:12px">
-          <div id="toTime" class="jounty-tile">Next</div>
-        </div>
-      </div>`;
-
-    const row = $('#playerRow', wizardCard);
-    [1,2,3,4].forEach(n=>{
-      const el = document.createElement('div');
-      el.className='jounty-tile';
-      el.textContent = n + (n>1 ? ' Players' : ' Player');
-      el.dataset.val = n;
-      if(n === chosenPlayers) el.classList.add('selected');
-      el.addEventListener('click', ()=>{
-        chosenPlayers = n;
-        Array.from(row.children).forEach(c=>c.classList.remove('selected'));
-        el.classList.add('selected');
-      });
-      row.appendChild(el);
-    });
-
-    $('#toTime', wizardCard).addEventListener('click', ()=>{
-      wizardStep=2;
-      renderWizard();
-    });
-    return;
-  }
-
-  if(wizardStep === 2){
-    wizardCard.innerHTML = `
-      <div style="text-align:center">
-        <div style="font-size:1.2rem;font-weight:800;color:#111">Rounds & Time</div>
-        <div class="small" style="color:#333;margin-top:6px">Choose number of rounds and round length</div>
-
-        <div style="display:flex;gap:18px;justify-content:center;margin-top:12px">
-          <div>
-            <div style="font-weight:800;color:#111;margin-bottom:8px">Rounds</div>
-            <div class="jounty-row" id="roundRow"></div>
-          </div>
-
-          <div>
-            <div style="font-weight:800;color:#111;margin-bottom:8px">Time</div>
-            <div class="jounty-row" id="timeRow"></div>
-          </div>
-        </div>
-
-        <div class="wizard-actions" style="margin-top:14px">
-          <div id="toTheme" class="jounty-tile">Next</div>
-          <div id="backToPlayers" class="jounty-tile">Back</div>
-        </div>
-      </div>`;
-
-    const roundRow = $('#roundRow', wizardCard);
-    [2,4,5,10].forEach(r=>{
-      const el = document.createElement('div');
-      el.className='jounty-tile';
-      el.textContent = r + ' Rounds';
-      el.dataset.val = r;
-      if(r === chosenRounds) el.classList.add('selected');
-      el.addEventListener('click', ()=>{
-        chosenRounds = r;
-        Array.from(roundRow.children).forEach(c=>c.classList.remove('selected'));
-        el.classList.add('selected');
-      });
-      roundRow.appendChild(el);
-    });
-
-    const timeRow = $('#timeRow', wizardCard);
-    [60,90,120].forEach(t=>{
-      const el = document.createElement('div');
-      el.className='jounty-tile';
-      el.textContent = t + 's';
-      el.dataset.val = t;
-      if(t === chosenTime) el.classList.add('selected');
-      el.addEventListener('click', ()=>{
-        chosenTime = t;
-        Array.from(timeRow.children).forEach(c=>c.classList.remove('selected'));
-        el.classList.add('selected');
-      });
-      timeRow.appendChild(el);
-    });
-
-    $('#toTheme', wizardCard).addEventListener('click', ()=>{
-      wizardStep=3;
-      renderWizard();
-    });
-
-    $('#backToPlayers', wizardCard).addEventListener('click', ()=>{
-      wizardStep=1;
-      renderWizard();
-    });
-
-    return;
-  }
-
-  if(wizardStep === 3){
-    wizardCard.innerHTML = `
-      <div style="text-align:center">
-        <div style="font-size:1.2rem;font-weight:800;color:#111">Theme & Profiles</div>
-        <div class="small" style="color:#333;margin-top:6px">Pick a theme and upload / save player profiles</div>
-
-        <div class="jounty-row" id="themeRow" style="margin-top:12px"></div>
-        <div id="playerSlots" style="margin-top:12px"></div>
-
-        <div style="margin-top:12px">
-          <div id="finishSetup" class="jounty-tile">Finish Setup</div>
-          <div id="backToRounds" class="jounty-tile">Back</div>
-        </div>
-      </div>`;
-
-    const themeRow = $('#themeRow', wizardCard);
-    ['dark','pastel','rainbow','xmas','light'].forEach(t=>{
-      const el = document.createElement('div');
-      el.className='jounty-tile';
-      el.textContent = t.charAt(0).toUpperCase() + t.slice(1);
-      if(t === chosenTheme) el.classList.add('selected');
-      el.addEventListener('click', ()=>{
-        chosenTheme = t;
-        Array.from(themeRow.children).forEach(c=>c.classList.remove('selected'));
-        el.classList.add('selected');
-      });
-      themeRow.appendChild(el);
-    });
-
-    const slots = $('#playerSlots', wizardCard);
-    slots.innerHTML = '';
-    for(let i=0;i<chosenPlayers;i++){
-      const row = document.createElement('div');
-      row.style.display='flex';
-      row.style.alignItems='center';
-      row.style.gap='12px';
-      row.style.marginTop='8px';
-      row.innerHTML = `
-        <div id="preview_${i}" style="width:56px;height:56px;border-radius:50%;overflow:hidden;background:#eee;display:flex;align-items:center;justify-content:center">
-          ${uploadedImages[i] ? '<img src="'+uploadedImages[i]+'" style="width:100%;height:100%;object-fit:cover">' : (i+1)}
-        </div>
-        <input id="name_${i}" placeholder="Player ${i+1} name" value="${escapeHtml(playerNames[i]||DEFAULT_PLAYER_NAMES[i])}" style="padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.06);min-width:220px">
-        <input id="img_${i}" type="file" accept="image/*" style="max-width:160px">
-        <button type="button" class="btn" id="saveProfile_${i}">Save profile</button>
-        <button type="button" class="btn" id="loadProfile_${i}">Load profile</button>
-      `;
-      slots.appendChild(row);
-    }
-
-    for(let i=0;i<chosenPlayers;i++){
-      const fileInput = $('#img_'+i, wizardCard);
-      if(fileInput){
-        fileInput.addEventListener('change', (ev)=>{
-          const file = ev.target.files && ev.target.files[0];
-          if(!file) return;
-          const reader = new FileReader();
-          reader.onload = function(e){
-            uploadedImages[i] = e.target.result;
-            const prev = $('#preview_'+i, wizardCard);
-            if(prev){
-              prev.innerHTML = `<img src="${uploadedImages[i]}" style="width:100%;height:100%;object-fit:cover">`;
-            }
-          };
-          reader.readAsDataURL(file);
-        });
-      }
-
-      const saveBtn = $('#saveProfile_'+i, wizardCard);
-      if(saveBtn){
-        saveBtn.addEventListener('click', ()=>{
-          const nameEl = $('#name_'+i, wizardCard);
-          const name = nameEl && nameEl.value.trim() ? nameEl.value.trim() : DEFAULT_PLAYER_NAMES[i];
-          const id = name.toLowerCase().replace(/\s+/g,'_') || ('player_'+i);
-
-          addOrUpdateProfile({
-            id,
-            name,
-            image: uploadedImages[i] || null
-          });
-
-          setMessage('Profile saved: ' + name);
-        });
-      }
-
-      const loadBtn = $('#loadProfile_'+i, wizardCard);
-      if(loadBtn){
-        loadBtn.addEventListener('click', ()=>{
-          showProfileManager(i, ()=>{ renderWizard(); });
-        });
-      }
-    }
-
-    $('#backToRounds', wizardCard).addEventListener('click', ()=>{
-      wizardStep=2;
-      renderWizard();
-    });
-
-    return;
-  }
-}
-
-// --- PROFILE STORAGE --------------------------------------------------------
-function loadProfiles(){
-  try{
-    const raw = localStorage.getItem(PROFILE_KEY);
-    if(!raw) return [];
-    return JSON.parse(raw);
-  }catch(e){
-    return [];
-  }
-}
-
-function saveProfiles(list){
-  try{
-    localStorage.setItem(PROFILE_KEY, JSON.stringify(list));
-  }catch(e){}
-}
-
-function addOrUpdateProfile(pr){
-  const list = loadProfiles();
-  const idx = list.findIndex(x=>x.id===pr.id);
-  if(idx>=0) list[idx] = pr;
-  else list.push(pr);
-  saveProfiles(list);
-}
-
-function deleteProfile(id){
-  const list = loadProfiles().filter(x=>x.id!==id);
-  saveProfiles(list);
-}
-
-// --- SCORE STORAGE ----------------------------------------------------------
-function loadScores(){
-  try{
-    const raw = localStorage.getItem(SCORE_KEY);
-    if(!raw) return [0,0,0,0];
-    const arr = JSON.parse(raw);
-    return Array.isArray(arr) ? arr : [0,0,0,0];
-  }catch(e){
-    return [0,0,0,0];
-  }
-}
-
-function saveScores(arr){
-  try{
-    localStorage.setItem(SCORE_KEY, JSON.stringify(arr));
-  }catch(e){}
-}
-
-// --- BOARD SETUP ------------------------------------------------------------
+/* -------------------------
+   board setup & magnets
+   ------------------------- */
 function renderStartButton(){
   startGameWrap.innerHTML = '';
   const btn = document.createElement('div');
@@ -915,14 +487,7 @@ function setupBoard(){
     el.appendChild(inner);
     playArea.appendChild(el);
 
-    const marker = {
-      playerIndex:i,
-      el,
-      x:positions[i].x,
-      y:positions[i].y,
-      imgSrc:uploadedImages[i]||null
-    };
-
+    const marker = { playerIndex:i, el, x:positions[i].x, y:positions[i].y, imgSrc:uploadedImages[i]||null };
     markers.push(marker);
     makeMarkerDraggable(marker);
   }
@@ -932,45 +497,28 @@ function setupBoard(){
 }
 
 function clearBoard(){
-  magnets.forEach(m=>{
-    if(m.el && m.el.parentNode) m.el.parentNode.removeChild(m.el);
-  });
+  magnets.forEach(m=>{ if(m.el && m.el.parentNode) m.el.parentNode.removeChild(m.el); });
   magnets = [];
-
-  markers.forEach(m=>{
-    if(m.el && m.el.parentNode) m.el.parentNode.removeChild(m.el);
-  });
+  markers.forEach(m=>{ if(m.el && m.el.parentNode) m.el.parentNode.removeChild(m.el); });
   markers = [];
-
   magnetId = 1;
 }
 
 function generateWordMagnets(){
+  // Only regenerate when explicitly requested (start, reshuffle, next round)
   wordBank.innerHTML = '';
-
-  magnets.forEach(m=>{
-    if(m.el && m.el.parentNode) m.el.parentNode.removeChild(m.el);
-  });
+  magnets.forEach(m=>{ if(m.el && m.el.parentNode) m.el.parentNode.removeChild(m.el); });
   magnets = [];
   magnetId = 1;
 
   const pool = buildBigPool();
   const chosen = [];
 
-  for(let w of COMMON_WORDS){
-    chosen.push(w);
-  }
-
-  for(let c of CONNECTORS){
-    if(Math.random() < 0.5){
-      chosen.push(c);
-    }
-  }
+  for(let w of COMMON_WORDS) chosen.push(w);
+  for(let c of CONNECTORS) if(Math.random() < 0.5) chosen.push(c);
 
   const things = ["cat","dog","potato","nipple","frog","hammer","guitar","plant","pot","dressing","gown","pizza","glitter","cheese","pants","jumper","kettle","pills","drugs","music","bath","soap","tree","flower","watch","alexa","bleach","car","bus","train","plane"];
-  for(let t of things){
-    if(Math.random() < 0.85) chosen.push(t);
-  }
+  for(let t of things) if(Math.random() < 0.85) chosen.push(t);
 
   while(chosen.length < ROUND_WORD_COUNT){
     const idx = Math.floor(Math.random() * pool.length);
@@ -1001,22 +549,15 @@ function generateWordMagnets(){
 
     wordBank.appendChild(el);
 
-    const magnet = {
-      id:magnetId++,
-      text,
-      el,
-      inPlay:false,
-      x,
-      y,
-      angle
-    };
-
+    const magnet = { id:magnetId++, text, el, inPlay:false, x, y, angle };
     magnets.push(magnet);
     makeMagnetDraggable(magnet);
   }
 }
 
-// --- DRAGGING LOGIC (MAGNETS) ----------------------------------------------
+/* -------------------------
+   dragging logic (magnets)
+   ------------------------- */
 function makeMagnetDraggable(magnet){
   const el = magnet.el;
   let dragging=false, offsetX=0, offsetY=0, activePointerId = null;
@@ -1026,11 +567,9 @@ function makeMagnetDraggable(magnet){
     activePointerId = pointerId || null;
     el.style.zIndex = 9999;
     document.body.classList.add('dragging-touch');
-
     const r = el.getBoundingClientRect();
     offsetX = clientX - r.left;
     offsetY = clientY - r.top;
-
     el.classList.add('dragging');
     wordBank.classList.add('drag-over-candidate');
   }
@@ -1078,8 +617,7 @@ function makeMagnetDraggable(magnet){
     magnet.y = y;
 
     const bankRect = wordBank.getBoundingClientRect();
-    if(e.clientX >= bankRect.left && e.clientX <= bankRect.right &&
-       e.clientY >= bankRect.top && e.clientY <= bankRect.bottom){
+    if(e.clientX >= bankRect.left && e.clientX <= bankRect.right && e.clientY >= bankRect.top && e.clientY <= bankRect.bottom){
       wordBank.classList.add('drag-over');
     } else {
       wordBank.classList.remove('drag-over');
@@ -1095,16 +633,12 @@ function makeMagnetDraggable(magnet){
     const playRect = playArea.getBoundingClientRect();
     const bankRect = wordBank.getBoundingClientRect();
 
-    if(centerX >= playRect.left && centerX <= playRect.right &&
-       centerY >= playRect.top && centerY <= playRect.bottom){
-
+    if(centerX >= playRect.left && centerX <= playRect.right && centerY >= playRect.top && centerY <= playRect.bottom){
       const localX = centerX - playRect.left - el.offsetWidth/2;
       const localY = centerY - playRect.top - el.offsetHeight/2;
-
       magnet.inPlay = true;
       magnet.x = clamp(localX, 0, playRect.width - el.offsetWidth);
       magnet.y = clamp(localY, 0, playRect.height - el.offsetHeight);
-
       playArea.appendChild(el);
       el.style.left = magnet.x + 'px';
       el.style.top = magnet.y + 'px';
@@ -1113,16 +647,12 @@ function makeMagnetDraggable(magnet){
       return;
     }
 
-    if(centerX >= bankRect.left && centerX <= bankRect.right &&
-       centerY >= bankRect.top && centerY <= bankRect.bottom){
-
+    if(centerX >= bankRect.left && centerX <= bankRect.right && centerY >= bankRect.top && centerY <= bankRect.bottom){
       const x = Math.round(rand(8, Math.max(80, bankRect.width - 160)));
       const y = Math.round(rand(6, Math.max(20, bankRect.height - 48)));
-
       magnet.inPlay = false;
       magnet.x = x;
       magnet.y = y;
-
       wordBank.appendChild(el);
       el.style.left = x + 'px';
       el.style.top = y + 'px';
@@ -1143,7 +673,6 @@ function makeMagnetDraggable(magnet){
       const bankRect2 = wordBank.getBoundingClientRect();
       const x = Math.round(rand(8, Math.max(80, bankRect2.width - 160)));
       const y = Math.round(rand(6, Math.max(20, bankRect2.height - 48)));
-
       magnet.inPlay = false;
       magnet.x = x;
       magnet.y = y;
@@ -1155,51 +684,9 @@ function makeMagnetDraggable(magnet){
     endDrag();
   }
 
-  function onTouchStart(ev){
-    if(ev.touches && ev.touches.length){
-      const t = ev.touches[0];
-      ev.preventDefault();
-      startDrag(t.clientX, t.clientY, 'touch');
-    }
-  }
-  function onTouchMove(ev){
-    if(!dragging) return;
-    if(ev.touches && ev.touches.length){
-      const t = ev.touches[0];
-      ev.preventDefault();
-      let x = t.clientX - offsetX;
-      let y = t.clientY - offsetY;
-
-      const vw = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
-      const vh = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
-
-      x = clamp(x, 0, vw - el.offsetWidth);
-      y = clamp(y, 0, vh - el.offsetHeight);
-
-      if(!magnet._absolute){
-        magnet._absolute = true;
-        document.body.appendChild(el);
-      }
-
-      el.style.left = x + 'px';
-      el.style.top = y + 'px';
-      magnet.x = x;
-      magnet.y = y;
-
-      const bankRect = wordBank.getBoundingClientRect();
-      if(t.clientX >= bankRect.left && t.clientX <= bankRect.right &&
-         t.clientY >= bankRect.top && t.clientY <= bankRect.bottom){
-        wordBank.classList.add('drag-over');
-      } else {
-        wordBank.classList.remove('drag-over');
-      }
-    }
-  }
-  function onTouchEnd(ev){
-    if(!dragging) return;
-    ev.preventDefault();
-    onPointerUp({ pointerId: activePointerId });
-  }
+  function onTouchStart(ev){ if(ev.touches && ev.touches.length){ const t = ev.touches[0]; ev.preventDefault(); startDrag(t.clientX, t.clientY, 'touch'); } }
+  function onTouchMove(ev){ if(!dragging) return; if(ev.touches && ev.touches.length){ const t = ev.touches[0]; ev.preventDefault(); let x = t.clientX - offsetX; let y = t.clientY - offsetY; const vw = Math.max(document.documentElement.clientWidth, window.innerWidth || 0); const vh = Math.max(document.documentElement.clientHeight, window.innerHeight || 0); x = clamp(x, 0, vw - el.offsetWidth); y = clamp(y, 0, vh - el.offsetHeight); if(!magnet._absolute){ magnet._absolute = true; document.body.appendChild(el); } el.style.left = x + 'px'; el.style.top = y + 'px'; magnet.x = x; magnet.y = y; const bankRect = wordBank.getBoundingClientRect(); if(t.clientX >= bankRect.left && t.clientX <= bankRect.right && t.clientY >= bankRect.top && t.clientY <= bankRect.bottom){ wordBank.classList.add('drag-over'); } else { wordBank.classList.remove('drag-over'); } } }
+  function onTouchEnd(ev){ if(!dragging) return; ev.preventDefault(); onPointerUp({ pointerId: activePointerId }); }
 
   el.addEventListener('pointerdown', onPointerDown, { passive: false });
   window.addEventListener('pointermove', onPointerMove, { passive: false });
@@ -1211,7 +698,9 @@ function makeMagnetDraggable(magnet){
   window.addEventListener('touchcancel', onTouchEnd, { passive: false });
 }
 
-// --- MARKER DRAGGING -------------------------------------------------------
+/* -------------------------
+   marker dragging
+   ------------------------- */
 function makeMarkerDraggable(marker){
   const el = marker.el;
   let dragging=false, offsetX=0, offsetY=0, activePointerId = null;
@@ -1225,75 +714,15 @@ function makeMarkerDraggable(marker){
     offsetY = clientY - r.top;
   }
 
-  function endDrag(){
-    dragging = false;
-    activePointerId = null;
-    document.body.classList.remove('dragging-touch');
-  }
+  function endDrag(){ dragging = false; activePointerId = null; document.body.classList.remove('dragging-touch'); }
 
-  function onPointerDown(e){
-    if(e.pointerType === 'mouse' && e.button !== 0) return;
-    e.preventDefault();
-    try{ el.setPointerCapture(e.pointerId); }catch(err){}
-    startDrag(e.clientX, e.clientY, e.pointerId);
-  }
+  function onPointerDown(e){ if(e.pointerType === 'mouse' && e.button !== 0) return; e.preventDefault(); try{ el.setPointerCapture(e.pointerId); }catch(err){} startDrag(e.clientX, e.clientY, e.pointerId); }
+  function onPointerMove(e){ if(!dragging) return; if(activePointerId !== null && e.pointerId !== activePointerId) return; e.preventDefault(); const playRect = playArea.getBoundingClientRect(); let x = e.clientX - playRect.left - offsetX; let y = e.clientY - playRect.top - offsetY; x = clamp(x, 0, playRect.width - el.offsetWidth); y = clamp(y, 0, playRect.height - el.offsetHeight); marker.x = x; marker.y = y; el.style.left = x + 'px'; el.style.top = y + 'px'; }
+  function onPointerUp(e){ if(activePointerId !== null && e.pointerId !== activePointerId) return; try{ el.releasePointerCapture(e.pointerId); }catch(err){} endDrag(); }
 
-  function onPointerMove(e){
-    if(!dragging) return;
-    if(activePointerId !== null && e.pointerId !== activePointerId) return;
-    e.preventDefault();
-
-    const playRect = playArea.getBoundingClientRect();
-    let x = e.clientX - playRect.left - offsetX;
-    let y = e.clientY - playRect.top - offsetY;
-
-    x = clamp(x, 0, playRect.width - el.offsetWidth);
-    y = clamp(y, 0, playRect.height - el.offsetHeight);
-
-    marker.x = x;
-    marker.y = y;
-
-    el.style.left = x + 'px';
-    el.style.top = y + 'px';
-  }
-
-  function onPointerUp(e){
-    if(activePointerId !== null && e.pointerId !== activePointerId) return;
-    try{ el.releasePointerCapture(e.pointerId); }catch(err){}
-    endDrag();
-  }
-
-  function onTouchStart(ev){
-    if(ev.touches && ev.touches.length){
-      const t = ev.touches[0];
-      ev.preventDefault();
-      startDrag(t.clientX, t.clientY, 'touch');
-    }
-  }
-  function onTouchMove(ev){
-    if(!dragging) return;
-    if(ev.touches && ev.touches.length){
-      const t = ev.touches[0];
-      ev.preventDefault();
-      const playRect = playArea.getBoundingClientRect();
-      let x = t.clientX - playRect.left - offsetX;
-      let y = t.clientY - playRect.top - offsetY;
-
-      x = clamp(x, 0, playRect.width - el.offsetWidth);
-      y = clamp(y, 0, playRect.height - el.offsetHeight);
-
-      marker.x = x;
-      marker.y = y;
-
-      el.style.left = x + 'px';
-      el.style.top = y + 'px';
-    }
-  }
-  function onTouchEnd(ev){
-    if(!dragging) return;
-    ev.preventDefault();
-    endDrag();
-  }
+  function onTouchStart(ev){ if(ev.touches && ev.touches.length){ const t = ev.touches[0]; ev.preventDefault(); startDrag(t.clientX, t.clientY, 'touch'); } }
+  function onTouchMove(ev){ if(!dragging) return; if(ev.touches && ev.touches.length){ const t = ev.touches[0]; ev.preventDefault(); const playRect = playArea.getBoundingClientRect(); let x = t.clientX - playRect.left - offsetX; let y = t.clientY - playRect.top - offsetY; x = clamp(x, 0, playRect.width - el.offsetWidth); y = clamp(y, 0, playRect.height - el.offsetHeight); marker.x = x; marker.y = y; el.style.left = x + 'px'; el.style.top = y + 'px'; } }
+  function onTouchEnd(ev){ if(!dragging) return; ev.preventDefault(); endDrag(); }
 
   el.addEventListener('pointerdown', onPointerDown, { passive: false });
   window.addEventListener('pointermove', onPointerMove, { passive: false });
@@ -1305,88 +734,48 @@ function makeMarkerDraggable(marker){
   window.addEventListener('touchcancel', onTouchEnd, { passive: false });
 }
 
-// --- ROUND FLOW ------------------------------------------------------------
+/* -------------------------
+   round flow & ratings
+   ------------------------- */
 function startRound(){
   if(roundActive) return;
-
-  if(currentRound === 0){
-    setupBoard();
-  }
-
+  if(currentRound === 0) setupBoard();
   roundActive = true;
   currentRound++;
   totalRounds = chosenRounds;
-
   timeLeft = chosenTime;
   timerDisplay.textContent = timeLeft + 's';
   updateTimerBar();
-
   setMessage(`Round ${currentRound}/${totalRounds} started — ${timeLeft}s`);
-
   if(timer) clearInterval(timer);
-
   timer = setInterval(()=>{
     timeLeft--;
     timerDisplay.textContent = timeLeft + 's';
     updateTimerBar();
-
-    if(timeLeft <= 0){
-      clearInterval(timer);
-      timer = null;
-      endRound();
-    }
+    if(timeLeft <= 0){ clearInterval(timer); timer = null; endRound(); }
   },1000);
 }
 
-function updateTimerBar(){
-  const pct = Math.max(0, Math.min(1, timeLeft / chosenTime));
-  timerBar.style.width = (pct*100) + '%';
-
-  if(pct < 0.25){
-    timerBar.style.filter = 'hue-rotate(-20deg) saturate(1.2)';
-  } else {
-    timerBar.style.filter = '';
-  }
-}
+function updateTimerBar(){ const pct = Math.max(0, Math.min(1, timeLeft / chosenTime)); timerBar.style.width = (pct*100) + '%'; if(pct < 0.25) timerBar.style.filter = 'hue-rotate(-20deg) saturate(1.2)'; else timerBar.style.filter = ''; }
 
 function endRound(){
   roundActive = false;
   timerDisplay.textContent = '0s';
   timerBar.style.width = '0%';
-
   setMessage('Time! Freezing board and computing sentences...');
-
-  magnets.forEach(m=>{
-    if(m.el) m.el.style.pointerEvents = 'none';
-  });
-
-  markers.forEach(m=>{
-    if(m.el) m.el.style.pointerEvents = 'none';
-  });
-
+  magnets.forEach(m=>{ if(m.el) m.el.style.pointerEvents = 'none'; });
+  markers.forEach(m=>{ if(m.el) m.el.style.pointerEvents = 'none'; });
   setTimeout(()=>{ openRatingsModal(); }, 200);
 }
 
-// --- CLUSTERING / SENTENCES / RATINGS --------------------------------------
+/* clustering & ratings (unchanged logic) */
 function clusterMagnets(eps){
   const threshold = eps || 140;
   const inPlay = magnets.filter(m => m.inPlay && m.el);
   const visited = new Set();
   const clusters = [];
-
-  function centerOf(m){
-    return {
-      x: m.x + (m.el ? m.el.offsetWidth/2 : 0),
-      y: m.y + (m.el ? m.el.offsetHeight/2 : 0)
-    };
-  }
-
-  function dist(a,b){
-    const dx = a.x - b.x;
-    const dy = a.y - b.y;
-    return Math.sqrt(dx*dx + dy*dy);
-  }
-
+  function centerOf(m){ return { x: m.x + (m.el ? m.el.offsetWidth/2 : 0), y: m.y + (m.el ? m.el.offsetHeight/2 : 0) }; }
+  function dist(a,b){ const dx = a.x - b.x; const dy = a.y - b.y; return Math.sqrt(dx*dx + dy*dy); }
   for(let i=0;i<inPlay.length;i++){
     const start = inPlay[i];
     if(visited.has(start)) continue;
@@ -1401,48 +790,25 @@ function clusterMagnets(eps){
         const other = inPlay[j];
         if(visited.has(other)) continue;
         const cother = centerOf(other);
-        if(dist(ccur, cother) <= threshold){
-          visited.add(other);
-          queue.push(other);
-        }
+        if(dist(ccur, cother) <= threshold){ visited.add(other); queue.push(other); }
       }
     }
     if(cluster.length) clusters.push(cluster);
   }
-
   return clusters;
 }
 
 function assignClustersToMarkers(clusters){
   const assigned = Array.from({length: chosenPlayers}, ()=>[]);
   if(!markers || markers.length === 0) return assigned;
-
   clusters.forEach(cluster=>{
-    let cx = 0, cy = 0;
-    cluster.forEach(m=>{
-      cx += m.x + (m.el ? m.el.offsetWidth/2 : 0);
-      cy += m.y + (m.el ? m.el.offsetHeight/2 : 0);
-    });
-    cx /= cluster.length;
-    cy /= cluster.length;
-
-    let bestIdx = 0;
-    let bestDist = Infinity;
-    markers.forEach((mk, idx)=>{
-      const mx = mk.x + (mk.el ? mk.el.offsetWidth/2 : 0);
-      const my = mk.y + (mk.el ? mk.el.offsetHeight/2 : 0);
-      const dx = mx - cx;
-      const dy = my - cy;
-      const d = Math.sqrt(dx*dx + dy*dy);
-      if(d < bestDist){
-        bestDist = d;
-        bestIdx = idx;
-      }
-    });
-
+    let cx=0, cy=0;
+    cluster.forEach(m=>{ cx += m.x + (m.el ? m.el.offsetWidth/2 : 0); cy += m.y + (m.el ? m.el.offsetHeight/2 : 0); });
+    cx /= cluster.length; cy /= cluster.length;
+    let bestIdx=0, bestDist=Infinity;
+    markers.forEach((mk, idx)=>{ const mx = mk.x + (mk.el ? mk.el.offsetWidth/2 : 0); const my = mk.y + (mk.el ? mk.el.offsetHeight/2 : 0); const dx = mx - cx; const dy = my - cy; const d = Math.sqrt(dx*dx + dy*dy); if(d < bestDist){ bestDist = d; bestIdx = idx; } });
     assigned[bestIdx].push(cluster);
   });
-
   return assigned;
 }
 
@@ -1450,24 +816,14 @@ function orderMagnetsRowMajor(cluster){
   if(!cluster || !cluster.length) return [];
   const tolerance = 40;
   const copy = cluster.slice();
-  copy.sort((a,b)=>{
-    const ay = a.y, by = b.y;
-    if(Math.abs(ay - by) > tolerance) return ay - by;
-    return a.x - b.x;
-  });
+  copy.sort((a,b)=>{ const ay=a.y, by=b.y; if(Math.abs(ay-by) > tolerance) return ay - by; return a.x - b.x; });
   return copy;
 }
 
 function openRatingsModal(){
   const clusters = clusterMagnets(140);
-  if(!clusters.length){
-    setMessage('No sentences detected this round. Skipping ratings.');
-    showWinnerAndAdvance(null);
-    return;
-  }
-
+  if(!clusters.length){ setMessage('No sentences detected this round. Skipping ratings.'); showWinnerAndAdvance(null); return; }
   const byPlayer = assignClustersToMarkers(clusters);
-
   const sentencesByPlayer = byPlayer.map(playerClusters=>{
     const out = [];
     playerClusters.forEach(cluster=>{
@@ -1478,230 +834,91 @@ function openRatingsModal(){
     return out;
   });
 
-  const modal = document.createElement('div');
-  modal.className = 'modal-backdrop';
-  const card = document.createElement('div');
-  card.className = 'modal-card';
-
-  let html = `<div style="display:flex;justify-content:space-between;align-items:center">
-      <div style="font-weight:900;font-size:1.2rem">Rate the chaos</div>
-      <div style="font-size:0.9rem;color:#666">Round ${currentRound}/${totalRounds}</div>
-    </div>
-    <div style="margin-top:8px;font-size:0.95rem;color:#444">Review each player’s sentences and give them a score for this round.</div>
-    <div class="rating-grid" style="margin-top:12px">`;
-
+  const modal = document.createElement('div'); modal.className='modal-backdrop';
+  const card = document.createElement('div'); card.className='modal-card';
+  let html = `<div style="display:flex;justify-content:space-between;align-items:center"><div style="font-weight:900;font-size:1.2rem">Rate the chaos</div><div style="font-size:0.9rem;color:#666">Round ${currentRound}/${totalRounds}</div></div><div style="margin-top:8px;font-size:0.95rem;color:#444">Review each player’s sentences and give them a score for this round.</div><div class="rating-grid" style="margin-top:12px">`;
   for(let p=0;p<chosenPlayers;p++){
     const sentences = sentencesByPlayer[p] || [];
     const name = escapeHtml(playerNames[p] || ('P'+(p+1)));
-
     html += `<div class="rating-row" data-player="${p}" style="padding:10px;border-radius:10px">`;
-
-    html += `<div style="flex:1;min-width:0">
-      <div style="font-weight:800;margin-bottom:6px">${name}</div>`;
-
-    if(sentences.length === 0){
-      html += `<div style="font-size:0.85rem;color:#666">No sentences.</div>`;
-    } else {
-      sentences.forEach(s=>{
-        html += `<div style="margin-bottom:8px;display:flex;flex-wrap:wrap;align-items:center">`;
-        s.magnets.forEach(m=>{
-          html += `<span class="modal-magnet">${escapeHtml(m.text)}</span>`;
-        });
-        html += `</div>`;
-      });
+    html += `<div style="flex:1;min-width:0"><div style="font-weight:800;margin-bottom:6px">${name}</div>`;
+    if(sentences.length === 0) html += `<div style="font-size:0.85rem;color:#666">No sentences.</div>`;
+    else {
+      sentences.forEach(s=>{ html += `<div style="margin-bottom:8px;display:flex;flex-wrap:wrap;align-items:center">`; s.magnets.forEach(m=>{ html += `<span class="modal-magnet">${escapeHtml(m.text)}</span>`; }); html += `</div>`; });
     }
-
     html += `</div>`;
-
-    html += `<div class="rating-controls" data-player="${p}">
-      <div class="rating-note">Round score</div>
-      <div style="display:flex;gap:6px">`;
-    for(let score=1;score<=5;score++){
-      html += `<button class="pill" data-player="${p}" data-score="${score}">${score}</button>`;
-    }
+    html += `<div class="rating-controls" data-player="${p}"><div class="rating-note">Round score</div><div style="display:flex;gap:6px">`;
+    for(let score=1;score<=5;score++) html += `<button class="pill" data-player="${p}" data-score="${score}">${score}</button>`;
     html += `</div></div></div>`;
   }
+  html += `</div><div style="display:flex;justify-content:flex-end;margin-top:16px;gap:10px"><button id="ratingsCancel" class="btn">Skip ratings</button><div id="ratingsSubmit" class="jounty-tile">Submit ratings</div></div>`;
+  card.innerHTML = html; modal.appendChild(card); document.body.appendChild(modal);
 
-  html += `</div>
-    <div style="display:flex;justify-content:flex-end;margin-top:16px;gap:10px">
-      <button id="ratingsCancel" class="btn">Skip ratings</button>
-      <div id="ratingsSubmit" class="jounty-tile">Submit ratings</div>
-    </div>`;
-
-  card.innerHTML = html;
-  modal.appendChild(card);
-  document.body.appendChild(modal);
-
-  for(let p=0;p<chosenPlayers;p++){
-    const row = card.querySelector(`.rating-row[data-player="${p}"]`);
-    if(row){
-      row.classList.add('player-highlight');
-      row.classList.add('p' + (p+1));
-    }
-  }
+  for(let p=0;p<chosenPlayers;p++){ const row = card.querySelector(`.rating-row[data-player="${p}"]`); if(row){ row.classList.add('player-highlight'); row.classList.add('p' + (p+1)); } }
 
   const ratingsMap = {};
-
-  card.querySelectorAll('.pill').forEach(btn=>{
-    btn.addEventListener('click', (ev)=>{
-      const b = ev.currentTarget;
-      const player = parseInt(b.dataset.player, 10);
-      const score = parseInt(b.dataset.score, 10);
-      ratingsMap[player] = score;
-      card.querySelectorAll(`.pill[data-player="${player}"]`).forEach(p=>p.classList.remove('selected'));
-      b.classList.add('selected');
-    });
-  });
+  card.querySelectorAll('.pill').forEach(btn=>{ btn.addEventListener('click', (ev)=>{ const b = ev.currentTarget; const player = parseInt(b.dataset.player, 10); const score = parseInt(b.dataset.score, 10); ratingsMap[player] = score; card.querySelectorAll(`.pill[data-player="${player}"]`).forEach(p=>p.classList.remove('selected')); b.classList.add('selected'); }); });
 
   const submitBtn = card.querySelector('#ratingsSubmit');
   const cancelBtn = card.querySelector('#ratingsCancel');
 
   submitBtn.addEventListener('click', ()=>{
     const deltas = Array.from({length: chosenPlayers}, ()=>0);
-    Object.keys(ratingsMap).forEach(k=>{
-      const idx = parseInt(k,10);
-      deltas[idx] = ratingsMap[idx] || 0;
-    });
-
+    Object.keys(ratingsMap).forEach(k=>{ const idx = parseInt(k,10); deltas[idx] = ratingsMap[idx] || 0; });
     const anyRated = deltas.some(d => d !== 0);
-    if(!anyRated){
-      setMessage('No ratings given — skipping scoring for this round.');
-      if(modal && modal.parentNode) modal.parentNode.removeChild(modal);
-      showWinnerAndAdvance(null);
-      return;
-    }
-
-    for(let i=0;i<chosenPlayers;i++){
-      scores[i] = (scores[i] || 0) + (deltas[i] || 0);
-    }
-
-    let max = -Infinity;
-    for(let i=0;i<chosenPlayers;i++) if(deltas[i] > max) max = deltas[i];
-    const topIndexes = [];
-    for(let i=0;i<chosenPlayers;i++){
-      if(deltas[i] === max && max > 0) topIndexes.push(i);
-    }
-
-    if(topIndexes.length > 1){
-      topIndexes.forEach(i => { scores[i] = (scores[i] || 0) + max; });
-    }
-
-    saveScores(scores);
-    updateScoreboard();
-
+    if(!anyRated){ setMessage('No ratings given — skipping scoring for this round.'); if(modal && modal.parentNode) modal.parentNode.removeChild(modal); showWinnerAndAdvance(null); return; }
+    for(let i=0;i<chosenPlayers;i++) scores[i] = (scores[i] || 0) + (deltas[i] || 0);
+    let max = -Infinity; for(let i=0;i<chosenPlayers;i++) if(deltas[i] > max) max = deltas[i];
+    const topIndexes = []; for(let i=0;i<chosenPlayers;i++) if(deltas[i] === max && max > 0) topIndexes.push(i);
+    if(topIndexes.length > 1) topIndexes.forEach(i => { scores[i] = (scores[i] || 0) + max; });
+    saveScores(scores); updateScoreboard();
     if(modal && modal.parentNode) modal.parentNode.removeChild(modal);
-
-    if(topIndexes.length > 1){
-      showWinnerAndAdvance(topIndexes);
-    } else if(topIndexes.length === 1){
-      showWinnerAndAdvance(topIndexes[0]);
-    } else {
-      showWinnerAndAdvance(null);
-    }
+    if(topIndexes.length > 1) showWinnerAndAdvance(topIndexes); else if(topIndexes.length === 1) showWinnerAndAdvance(topIndexes[0]); else showWinnerAndAdvance(null);
   });
 
-  cancelBtn.addEventListener('click', ()=>{
-    setMessage('Ratings skipped. No score changes this round.');
-    if(modal && modal.parentNode) modal.parentNode.removeChild(modal);
-    showWinnerAndAdvance(null);
-  });
+  cancelBtn.addEventListener('click', ()=>{ setMessage('Ratings skipped. No score changes this round.'); if(modal && modal.parentNode) modal.parentNode.removeChild(modal); showWinnerAndAdvance(null); });
 
-  function onKey(e){
-    if(e.key === 'Escape'){
-      if(modal && modal.parentNode) modal.parentNode.removeChild(modal);
-      window.removeEventListener('keydown', onKey);
-      showWinnerAndAdvance(null);
-    }
-  }
+  function onKey(e){ if(e.key === 'Escape'){ if(modal && modal.parentNode) modal.parentNode.removeChild(modal); window.removeEventListener('keydown', onKey); showWinnerAndAdvance(null); } }
   window.addEventListener('keydown', onKey);
 }
 
+/* -------------------------
+   scoring & round advance
+   ------------------------- */
 function showWinnerAndAdvance(winnerData){
-  const modal = document.createElement('div');
-  modal.className = 'modal-backdrop';
-  const card = document.createElement('div');
-  card.className = 'modal-card';
-
+  const modal = document.createElement('div'); modal.className='modal-backdrop';
+  const card = document.createElement('div'); card.className='modal-card';
   let title = `Round ${currentRound}/${totalRounds} complete`;
   let body = '';
-
-  if(winnerData == null){
-    body += `<div style="margin-top:8px;font-size:0.95rem;color:#444">No ratings this round.</div>`;
-  } else if(Array.isArray(winnerData) && winnerData.length > 1){
-    const names = winnerData.map(i => escapeHtml(playerNames[i] || ('P'+(i+1))));
-    const list = names.join(' and ');
-    body += `<div style="margin-top:8px;font-size:1rem">Draw — ${list} each get +${scores[winnerData[0]]}</div>`;
-  } else {
-    const idx = Array.isArray(winnerData) ? winnerData[0] : winnerData;
-    const wName = escapeHtml(playerNames[idx] || ('P'+(idx+1)));
-    body += `<div style="margin-top:8px;font-size:1rem">${wName} won that round</div>`;
-  }
-
+  if(winnerData == null) body += `<div style="margin-top:8px;font-size:0.95rem;color:#444">No ratings this round.</div>`;
+  else if(Array.isArray(winnerData) && winnerData.length > 1){ const names = winnerData.map(i => escapeHtml(playerNames[i] || ('P'+(i+1)))); const list = names.join(' and '); body += `<div style="margin-top:8px;font-size:1rem">Draw — ${list} each get +${scores[winnerData[0]]}</div>`; }
+  else { const idx = Array.isArray(winnerData) ? winnerData[0] : winnerData; const wName = escapeHtml(playerNames[idx] || ('P'+(idx+1))); body += `<div style="margin-top:8px;font-size:1rem">${wName} won that round</div>`; }
   const isLastRound = currentRound >= totalRounds;
-
-  body += `<div style="margin-top:14px;font-size:0.9rem;color:#555">${isLastRound ? 'That was the final round.' : 'Get ready for the next round.'}</div>
-    <div style="display:flex;justify-content:flex-end;margin-top:14px;gap:8px">
-      ${isLastRound ? '<div id="roundFinalScores" class="jounty-tile">View final scores</div>' : '<div id="roundNext" class="jounty-tile">Next round</div>'}
-      <button id="roundClose" class="btn">Close</button>
-    </div>`;
-
+  body += `<div style="margin-top:14px;font-size:0.9rem;color:#555">${isLastRound ? 'That was the final round.' : 'Get ready for the next round.'}</div><div style="display:flex;justify-content:flex-end;margin-top:14px;gap:8px">${isLastRound ? '<div id="roundFinalScores" class="jounty-tile">View final scores</div>' : '<div id="roundNext" class="jounty-tile">Next round</div>'}<button id="roundClose" class="btn">Close</button></div>`;
   card.innerHTML = `<div style="font-weight:900;font-size:1.2rem">${title}</div>${body}`;
-  modal.appendChild(card);
-  document.body.appendChild(modal);
+  modal.appendChild(card); document.body.appendChild(modal);
 
   if(winnerData != null){
     const winners = Array.isArray(winnerData) ? winnerData : [winnerData];
-    winners.forEach(wi=>{
-      const tile = document.createElement('div');
-      tile.className = 'jounty-tile player-highlight p' + (wi+1);
-      tile.style.marginTop = '12px';
-      tile.style.display = 'inline-block';
-      tile.textContent = (playerNames[wi] || ('P'+(wi+1))) + ' — +' + (scores[wi]||0);
-      card.appendChild(tile);
-    });
+    winners.forEach(wi=>{ const tile = document.createElement('div'); tile.className = 'jounty-tile player-highlight p' + (wi+1); tile.style.marginTop = '12px'; tile.style.display = 'inline-block'; tile.textContent = (playerNames[wi] || ('P'+(wi+1))) + ' — +' + (scores[wi]||0); card.appendChild(tile); });
   }
-
-  const closeModal = ()=>{ if(modal && modal.parentNode) modal.parentNode.removeChild(modal); };
 
   const nextBtn = card.querySelector('#roundNext');
   const finalBtn = card.querySelector('#roundFinalScores');
   const closeBtn = card.querySelector('#roundClose');
 
-  if(nextBtn){
-    nextBtn.addEventListener('click', ()=>{
-      closeModal();
-      resetForNextRound();
-    });
-  }
-  if(finalBtn){
-    finalBtn.addEventListener('click', ()=>{
-      closeModal();
-      showFinalResults();
-    });
-  }
-  if(closeBtn){
-    closeBtn.addEventListener('click', ()=>{
-      closeModal();
-      if(!isLastRound) resetForNextRound(); else showFinalResults();
-    });
-  }
+  if(nextBtn) nextBtn.addEventListener('click', ()=>{ if(modal && modal.parentNode) modal.parentNode.removeChild(modal); resetForNextRound(); });
+  if(finalBtn) finalBtn.addEventListener('click', ()=>{ if(modal && modal.parentNode) modal.parentNode.removeChild(modal); showFinalResults(); });
+  if(closeBtn) closeBtn.addEventListener('click', ()=>{ if(modal && modal.parentNode) modal.parentNode.removeChild(modal); if(!isLastRound) resetForNextRound(); else showFinalResults(); });
 
-  function onKey(e){
-    if(e.key==='Escape'){
-      closeModal();
-      window.removeEventListener('keydown', onKey);
-      if(!isLastRound) resetForNextRound(); else showFinalResults();
-    }
-  }
+  function onKey(e){ if(e.key==='Escape'){ if(modal && modal.parentNode) modal.parentNode.removeChild(modal); window.removeEventListener('keydown', onKey); if(!isLastRound) resetForNextRound(); else showFinalResults(); } }
   window.addEventListener('keydown', onKey);
 }
 
 function resetForNextRound(){
   roundActive = false;
-
   magnets.forEach(m=>{ if(m.el) m.el.style.pointerEvents = 'auto'; });
   markers.forEach(m=>{ if(m.el) m.el.style.pointerEvents = 'auto'; });
-
   if(currentRound < totalRounds){
     generateWordMagnets();
     timeLeft = chosenTime;
@@ -1717,76 +934,32 @@ function resetForNextRound(){
 }
 
 function showFinalResults(){
-  const modal = document.createElement('div');
-  modal.className = 'modal-backdrop';
-  const card = document.createElement('div');
-  card.className = 'modal-card';
-
-  card.innerHTML = `<div style="font-weight:900;font-size:1.2rem">Game Over — Final Scores</div>
-    <div style="margin-top:12px">${renderScoreboardInline(true)}</div>
-    <div style="display:flex;justify-content:flex-end;margin-top:14px;gap:8px">
-      <div id="finalRestart" class="jounty-tile">New Game</div>
-      <div id="finalClose" class="btn">Close</div>
-    </div>`;
-
-  modal.appendChild(card);
-  document.body.appendChild(modal);
+  const modal = document.createElement('div'); modal.className='modal-backdrop';
+  const card = document.createElement('div'); card.className='modal-card';
+  card.innerHTML = `<div style="font-weight:900;font-size:1.2rem">Game Over — Final Scores</div><div style="margin-top:12px">${renderScoreboardInline(true)}</div><div style="display:flex;justify-content:flex-end;margin-top:14px;gap:8px"><div id="finalRestart" class="jounty-tile">New Game</div><div id="finalClose" class="btn">Close</div></div>`;
+  modal.appendChild(card); document.body.appendChild(modal);
 
   function doFullReset(){
-    try{
-      document.querySelectorAll('.modal-backdrop').forEach(n=>{
-        if(n && n.parentNode) n.parentNode.removeChild(n);
-      });
-    }catch(e){}
-
-    saveScores(scores);
-    updateScoreboard();
-
-    currentRound = 0;
-    totalRounds = chosenRounds;
-
-    clearBoard();
-    renderStartButton();
-
+    try{ document.querySelectorAll('.modal-backdrop').forEach(n=>{ if(n && n.parentNode) n.parentNode.removeChild(n); }); }catch(e){}
+    saveScores(scores); updateScoreboard();
+    currentRound = 0; totalRounds = chosenRounds;
+    clearBoard(); renderStartButton();
     setMessage('Game reset. Opening setup wizard...');
-    setTimeout(()=>{
-      const w = document.getElementById('wizard');
-      if(w){
-        w.style.display = 'flex';
-        w.style.pointerEvents = 'auto';
-      }
-      if(typeof openWizard === 'function'){
-        openWizard();
-      } else {
-        const card = document.getElementById('wizardCard');
-        if(card) card.innerHTML = '';
-      }
-    }, 80);
+    setTimeout(()=>{ openWizard(); }, 80);
   }
 
   const restartBtn = card.querySelector('#finalRestart');
-  if(restartBtn) restartBtn.addEventListener('click',(ev)=>{
-    ev.preventDefault();
-    if(modal && modal.parentNode) modal.parentNode.removeChild(modal);
-    doFullReset();
-  });
-
+  if(restartBtn) restartBtn.addEventListener('click',(ev)=>{ ev.preventDefault(); if(modal && modal.parentNode) modal.parentNode.removeChild(modal); doFullReset(); });
   const closeBtn = card.querySelector('#finalClose');
-  if(closeBtn) closeBtn.addEventListener('click',(ev)=>{
-    ev.preventDefault();
-    if(modal && modal.parentNode) modal.parentNode.removeChild(modal);
-    setMessage('Final scores shown. Press New Game to start again.');
-  });
+  if(closeBtn) closeBtn.addEventListener('click',(ev)=>{ ev.preventDefault(); if(modal && modal.parentNode) modal.parentNode.removeChild(modal); setMessage('Final scores shown. Press New Game to start again.'); });
 
-  function onKey(e){
-    if(e.key==='Escape'){
-      if(modal && modal.parentNode) modal.parentNode.removeChild(modal);
-      window.removeEventListener('keydown', onKey);
-    }
-  }
+  function onKey(e){ if(e.key==='Escape'){ if(modal && modal.parentNode) modal.parentNode.removeChild(modal); window.removeEventListener('keydown', onKey); } }
   window.addEventListener('keydown', onKey);
 }
 
+/* -------------------------
+   scoreboard helpers
+   ------------------------- */
 function updateScoreboard(){
   scoreboardEl.innerHTML = '';
   for(let i=0;i<chosenPlayers;i++){
@@ -1796,7 +969,6 @@ function updateScoreboard(){
     scoreboardEl.appendChild(pill);
   }
 }
-
 function renderScoreboardInline(showLabels){
   let html = '';
   for(let i=0;i<chosenPlayers;i++){
@@ -1805,116 +977,281 @@ function renderScoreboardInline(showLabels){
   return html;
 }
 
-// --- PROFILE MANAGER -------------------------------------------------------
-function showProfileManager(targetIndex, onClose){
-  const modal = document.createElement('div'); modal.className='modal-backdrop';
-  const card = document.createElement('div'); card.className='modal-card';
-  card.innerHTML = `<div style="font-weight:800;color:#111">Saved Profiles</div><div id="profileList" style="margin-top:12px;max-height:50vh;overflow:auto"></div><div style="display:flex;justify-content:flex-end;margin-top:12px"><button id="closeProfiles" class="btn">Close</button></div>`;
-  modal.appendChild(card); document.body.appendChild(modal);
+/* -------------------------
+   settings (profiles) UI
+   - accessible from main screen
+   - separate from wizard
+   ------------------------- */
+function openSettings(){
+  settingsCard.innerHTML = `<div style="font-weight:800;color:#111">Saved Profiles</div><div id="profileList" style="margin-top:12px;max-height:50vh;overflow:auto"></div><div style="display:flex;justify-content:flex-end;margin-top:12px"><button id="closeSettings" class="btn">Close</button></div>`;
+  settingsOverlay.style.display = 'flex';
+  refreshSettingsList();
+  const closeBtn = settingsCard.querySelector('#closeSettings');
+  if(closeBtn) closeBtn.addEventListener('click', ()=>{ settingsOverlay.style.display = 'none'; });
+}
+function refreshSettingsList(){
+  const listEl = settingsCard.querySelector('#profileList'); if(!listEl) return;
+  listEl.innerHTML = '';
+  const list = loadProfiles();
+  if(list.length===0){ listEl.innerHTML = '<div style="padding:8px;color:#666">No saved profiles yet.</div>'; return; }
+  list.forEach(pr=>{
+    const row = document.createElement('div');
+    row.style.display='flex'; row.style.alignItems='center'; row.style.justifyContent='space-between'; row.style.gap='12px'; row.style.padding='8px 0';
+    row.innerHTML = `<div style="display:flex;align-items:center;gap:12px"><div style="width:48px;height:48px;border-radius:50%;overflow:hidden;background:#eee">${pr.image ? `<img src="${pr.image}" style="width:100%;height:100%;object-fit:cover">` : ''}</div><div><div style="font-weight:700;color:#111">${pr.name}</div><div style="font-size:0.85rem;color:#666">${pr.id}</div></div></div><div style="display:flex;gap:8px"><button class="btn use" data-id="${pr.id}">Use</button><button class="btn edit" data-id="${pr.id}">Edit</button><button class="btn del" data-id="${pr.id}">Delete</button></div>`;
+    listEl.appendChild(row);
+  });
 
-  function refresh(){
-    const listEl = card.querySelector('#profileList'); listEl.innerHTML = '';
-    const list = loadProfiles();
-    if(list.length===0){ listEl.innerHTML = '<div style="padding:8px;color:#666">No saved profiles yet.</div>'; return; }
-    list.forEach(pr=>{
-      const row = document.createElement('div'); 
-      row.style.display='flex'; 
-      row.style.alignItems='center'; 
-      row.style.justifyContent='space-between'; 
-      row.style.gap='12px'; 
-      row.style.padding='8px 0';
-
-      row.innerHTML = `
-        <div style="display:flex;align-items:center;gap:12px">
-          <div style="width:48px;height:48px;border-radius:50%;overflow:hidden;background:#eee">
-            ${pr.image ? `<img src="${pr.image}" style="width:100%;height:100%;object-fit:cover">` : ''}
-          </div>
-          <div>
-            <div style="font-weight:700;color:#111">${pr.name}</div>
-            <div style="font-size:0.85rem;color:#666">${pr.id}</div>
-          </div>
-        </div>
-        <div style="display:flex;gap:8px">
-          <button class="btn use" data-id="${pr.id}">Use</button>
-          <button class="btn del" data-id="${pr.id}">Delete</button>
-        </div>`;
-
-      listEl.appendChild(row);
-    });
-
-    listEl.querySelectorAll('button.use').forEach(b=>{
-      b.addEventListener('click', (ev)=>{
-        const id = ev.target.dataset.id;
-        const pr = loadProfiles().find(x=>x.id===id);
-        if(pr){
-          const nameEl = document.getElementById('name_' + targetIndex);
-          const previewEl = document.getElementById('preview_' + targetIndex);
-          if(nameEl && previewEl){
-            nameEl.value = pr.name;
-            uploadedImages[targetIndex] = pr.image || null;
-            previewEl.innerHTML = pr.image ? `<img src="${pr.image}" style="width:100%;height:100%;object-fit:cover">` : (targetIndex+1);
-            setMessage('Profile applied to player ' + (targetIndex+1) + ': ' + pr.name);
+  listEl.querySelectorAll('button.use').forEach(b=>{
+    b.addEventListener('click', (ev)=>{
+      const id = ev.target.dataset.id;
+      const pr = loadProfiles().find(x=>x.id===id);
+      if(pr){
+        // apply to first empty player slot in wizard if wizard open, else to player 1
+        let target = 0;
+        if(wizard.style.display === 'flex'){
+          // find first name input in wizard
+          for(let i=0;i<chosenPlayers;i++){
+            const nameEl = document.getElementById('name_' + i);
+            if(nameEl && (!nameEl.value || nameEl.value.trim() === '')){ target = i; break; }
           }
         }
-      });
-    });
-
-    listEl.querySelectorAll('button.del').forEach(b=>{
-      b.addEventListener('click', (ev)=>{
-        const id = ev.target.dataset.id;
-        deleteProfile(id);
-        refresh();
-      });
-    });
-  }
-
-  refresh();
-  card.querySelector('#closeProfiles').addEventListener('click', ()=>{ 
-    document.body.removeChild(modal); 
-    if(onClose) onClose(); 
-  });
-}
-
-// --- FINISH SETUP BINDER ---------------------------------------------------
-document.addEventListener('click', function finishSetupBinder(e){
-  const finishBtn = document.getElementById('finishSetup');
-  if(finishBtn && !finishBtn._bound){
-    finishBtn._bound = true;
-    finishBtn.addEventListener('click', ()=>{
-      try{
-        for(let p=0;p<chosenPlayers;p++){
-          const nameEl = document.getElementById('name_' + p);
-          playerNames[p] = nameEl && nameEl.value.trim() ? nameEl.value.trim() : DEFAULT_PLAYER_NAMES[p];
-        }
-        totalRounds = chosenRounds;
-        currentRound = 0;
-        scores = loadScores().slice(0,4);
-        saveScores(scores);
-        updateScoreboard();
-        applyTheme(chosenTheme);
-
-        const w = document.getElementById('wizard');
-        if(w){ w.style.display = 'none'; w.style.pointerEvents = 'none'; }
-        const card = document.getElementById('wizardCard');
-        if(card) card.innerHTML = '';
-
-        renderStartButton();
-        generateWordMagnets();
-
-
-        setMessage('Game ready. Press Start Game to begin round 1.');
-      }catch(err){
-        console.error('Finish setup failed', err);
-        const card = document.getElementById('wizardCard');
-        if(card){
-          card.innerHTML = '<div style="color:#b00;font-weight:800;padding:18px">Setup failed — check console for details.</div>';
+        const nameEl = document.getElementById('name_' + target);
+        const previewEl = document.getElementById('preview_' + target);
+        if(nameEl && previewEl){
+          nameEl.value = pr.name;
+          uploadedImages[target] = pr.image || null;
+          previewEl.innerHTML = pr.image ? `<img src="${pr.image}" style="width:100%;height:100%;object-fit:cover">` : (target+1);
+          setMessage('Profile applied to player ' + (target+1) + ': ' + pr.name);
         }
       }
     });
+  });
+
+  listEl.querySelectorAll('button.del').forEach(b=>{
+    b.addEventListener('click', (ev)=>{
+      const id = ev.target.dataset.id;
+      deleteProfile(id);
+      refreshSettingsList();
+    });
+  });
+
+  listEl.querySelectorAll('button.edit').forEach(b=>{
+    b.addEventListener('click', (ev)=>{
+      const id = ev.target.dataset.id;
+      const pr = loadProfiles().find(x=>x.id===id);
+      if(!pr) return;
+      // simple inline edit: prompt (keeps code small)
+      const newName = prompt('Edit name for profile', pr.name);
+      if(newName && newName.trim()){
+        pr.name = newName.trim();
+        addOrUpdateProfile(pr);
+        refreshSettingsList();
+      }
+    });
+  });
+}
+
+/* -------------------------
+   wizard (setup) UI
+   - binds finish button once when step 3 renders
+   - profile selection via dropdown in wizard
+   ------------------------- */
+function openWizard(){
+  try{ document.querySelectorAll('.modal-backdrop').forEach(n=>{ if(n && n.parentNode) n.parentNode.removeChild(n); }); }catch(e){}
+  wizard.style.display = 'flex';
+  wizard.style.pointerEvents = 'auto';
+  wizard.style.zIndex = '10050';
+  wizardStep = 0;
+  uploadedImages = [null,null,null,null];
+  wizardCard.innerHTML = '';
+  renderWizard();
+}
+
+function renderWizard(){
+  wizardCard.innerHTML = '';
+  if(wizardStep === 0){
+    wizardCard.innerHTML = `<div style="text-align:center"><div style="font-size:1.6rem;font-weight:900;color:#111">Magnetic Mayhem</div><div class="small" style="color:#444;margin-top:6px">Choose players, rounds, time and theme — then begin.</div><div class="jounty-row" style="margin-top:18px"><div id="startNew" class="jounty-tile">New Game</div></div></div>`;
+    $('#startNew', wizardCard).addEventListener('click', ()=>{ wizardStep=1; renderWizard(); });
+    return;
   }
+
+  if(wizardStep === 1){
+    wizardCard.innerHTML = `<div style="text-align:center"><div style="font-size:1.2rem;font-weight:800;color:#111">Players</div><div class="small" style="color:#333;margin-top:6px">Select how many players will play</div><div class="jounty-row" id="playerRow"></div><div style="margin-top:12px"><div id="toTime" class="jounty-tile">Next</div></div></div>`;
+    const row = $('#playerRow', wizardCard);
+    [1,2,3,4].forEach(n=>{
+      const el = document.createElement('div');
+      el.className='jounty-tile';
+      el.textContent = n + (n>1 ? ' Players' : ' Player');
+      el.dataset.val = n;
+      if(n === chosenPlayers) el.classList.add('selected');
+      el.addEventListener('click', ()=>{
+        chosenPlayers = n;
+        Array.from(row.children).forEach(c=>c.classList.remove('selected'));
+        el.classList.add('selected');
+      });
+      row.appendChild(el);
+    });
+    $('#toTime', wizardCard).addEventListener('click', ()=>{ wizardStep=2; renderWizard(); });
+    return;
+  }
+
+  if(wizardStep === 2){
+    wizardCard.innerHTML = `<div style="text-align:center"><div style="font-size:1.2rem;font-weight:800;color:#111">Rounds & Time</div><div class="small" style="color:#333;margin-top:6px">Choose number of rounds and round length</div><div style="display:flex;gap:18px;justify-content:center;margin-top:12px"><div><div style="font-weight:800;color:#111;margin-bottom:8px">Rounds</div><div class="jounty-row" id="roundRow"></div></div><div><div style="font-weight:800;color:#111;margin-bottom:8px">Time</div><div class="jounty-row" id="timeRow"></div></div></div><div class="wizard-actions" style="margin-top:14px"><div id="toTheme" class="jounty-tile">Next</div><div id="backToPlayers" class="jounty-tile">Back</div></div></div>`;
+    const roundRow = $('#roundRow', wizardCard);
+    [2,4,5,10].forEach(r=>{
+      const el = document.createElement('div');
+      el.className='jounty-tile';
+      el.textContent = r + ' Rounds';
+      el.dataset.val = r;
+      if(r === chosenRounds) el.classList.add('selected');
+      el.addEventListener('click', ()=>{ chosenRounds = r; Array.from(roundRow.children).forEach(c=>c.classList.remove('selected')); el.classList.add('selected'); });
+      roundRow.appendChild(el);
+    });
+    const timeRow = $('#timeRow', wizardCard);
+    [60,90,120].forEach(t=>{
+      const el = document.createElement('div');
+      el.className='jounty-tile';
+      el.textContent = t + 's';
+      el.dataset.val = t;
+      if(t === chosenTime) el.classList.add('selected');
+      el.addEventListener('click', ()=>{ chosenTime = t; Array.from(timeRow.children).forEach(c=>c.classList.remove('selected')); el.classList.add('selected'); });
+      timeRow.appendChild(el);
+    });
+    $('#toTheme', wizardCard).addEventListener('click', ()=>{ wizardStep=3; renderWizard(); });
+    $('#backToPlayers', wizardCard).addEventListener('click', ()=>{ wizardStep=1; renderWizard(); });
+    return;
+  }
+
+  if(wizardStep === 3){
+    // Step 3: theme & profiles. Bind finish button here (only once per render)
+    wizardCard.innerHTML = `<div style="text-align:center"><div style="font-size:1.2rem;font-weight:800;color:#111">Theme & Profiles</div><div class="small" style="color:#333;margin-top:6px">Pick a theme and choose saved profiles</div><div class="jounty-row" id="themeRow" style="margin-top:12px"></div><div id="playerSlots" style="margin-top:12px"></div><div style="margin-top:12px"><div id="finishSetup" class="jounty-tile">Finish Setup</div><div id="backToRounds" class="jounty-tile">Back</div></div></div>`;
+
+    const themeRow = $('#themeRow', wizardCard);
+    ['dark','pastel','rainbow','xmas','light'].forEach(t=>{
+      const el = document.createElement('div');
+      el.className='jounty-tile';
+      el.textContent = t.charAt(0).toUpperCase() + t.slice(1);
+      if(t === chosenTheme) el.classList.add('selected');
+      el.addEventListener('click', ()=>{ chosenTheme = t; Array.from(themeRow.children).forEach(c=>c.classList.remove('selected')); el.classList.add('selected'); });
+      themeRow.appendChild(el);
+    });
+
+    const slots = $('#playerSlots', wizardCard);
+    slots.innerHTML = '';
+    const savedProfiles = loadProfiles();
+    for(let i=0;i<chosenPlayers;i++){
+      const row = document.createElement('div');
+      row.style.display='flex';
+      row.style.alignItems='center';
+      row.style.gap='12px';
+      row.style.marginTop='8px';
+
+      // profile select dropdown (loads saved profiles into the slot)
+      const profileOptions = ['(none)'].concat(savedProfiles.map(p=>p.id));
+      const selectHtml = `<select id="profile_select_${i}" style="padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.06);max-width:160px"><option value="">(none)</option>` + savedProfiles.map(p=>`<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('') + `</select>`;
+
+      row.innerHTML = `
+        <div id="preview_${i}" style="width:56px;height:56px;border-radius:50%;overflow:hidden;background:#eee;display:flex;align-items:center;justify-content:center">
+          ${uploadedImages[i] ? '<img src="'+uploadedImages[i]+'" style="width:100%;height:100%;object-fit:cover">' : (i+1)}
+        </div>
+        <input id="name_${i}" placeholder="Player ${i+1} name" value="${escapeHtml(playerNames[i]||DEFAULT_PLAYER_NAMES[i])}" style="padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.06);min-width:220px">
+        ${selectHtml}
+        <button type="button" class="btn" id="saveProfile_${i}">Save profile</button>
+      `;
+      slots.appendChild(row);
+    }
+
+    // wire up profile selects and save buttons
+    for(let i=0;i<chosenPlayers;i++){
+      const sel = document.getElementById('profile_select_' + i);
+      if(sel){
+        sel.addEventListener('change', (ev)=>{
+          const id = ev.target.value;
+          if(!id){
+            // clear
+            uploadedImages[i] = null;
+            const prev = document.getElementById('preview_' + i);
+            if(prev) prev.innerHTML = (i+1);
+            return;
+          }
+          const pr = loadProfiles().find(x=>x.id===id);
+          if(pr){
+            uploadedImages[i] = pr.image || null;
+            const prev = document.getElementById('preview_' + i);
+            if(prev) prev.innerHTML = pr.image ? `<img src="${pr.image}" style="width:100%;height:100%;object-fit:cover">` : (i+1);
+            const nameEl = document.getElementById('name_' + i);
+            if(nameEl) nameEl.value = pr.name;
+            setMessage('Loaded profile into slot ' + (i+1) + ': ' + pr.name);
+          }
+        });
+      }
+
+      const saveBtn = document.getElementById('saveProfile_' + i);
+      if(saveBtn){
+        saveBtn.addEventListener('click', ()=>{
+          const nameEl = document.getElementById('name_' + i);
+          const name = nameEl && nameEl.value.trim() ? nameEl.value.trim() : DEFAULT_PLAYER_NAMES[i];
+          const id = name.toLowerCase().replace(/\s+/g,'_') || ('player_'+i);
+          addOrUpdateProfile({ id, name, image: uploadedImages[i] || null });
+          setMessage('Profile saved: ' + name);
+          // refresh selects to include new profile
+          renderWizard(); // re-render step to refresh dropdowns (safe here)
+        });
+      }
+    }
+
+    // finish & back buttons
+    $('#backToRounds', wizardCard).addEventListener('click', ()=>{ wizardStep=2; renderWizard(); });
+
+    // bind finish once per render (no global click binder)
+    const finishBtn = document.getElementById('finishSetup');
+    if(finishBtn && !finishBtn._bound){
+      finishBtn._bound = true;
+      finishBtn.addEventListener('click', ()=>{
+        try{
+          for(let p=0;p<chosenPlayers;p++){
+            const nameEl = document.getElementById('name_' + p);
+            playerNames[p] = nameEl && nameEl.value.trim() ? nameEl.value.trim() : DEFAULT_PLAYER_NAMES[p];
+          }
+          totalRounds = chosenRounds;
+          currentRound = 0;
+          scores = loadScores().slice(0,4);
+          saveScores(scores);
+          updateScoreboard();
+          applyTheme(chosenTheme);
+
+          wizard.style.display = 'none';
+          wizardCard.innerHTML = '';
+
+          renderStartButton();
+          generateWordMagnets();
+
+          setMessage('Game ready. Press Start Game to begin round 1.');
+        }catch(err){
+          console.error('Finish setup failed', err);
+          const card = document.getElementById('wizardCard');
+          if(card) card.innerHTML = '<div style="color:#b00;font-weight:800;padding:18px">Setup failed — check console for details.</div>';
+        }
+      });
+    }
+
+    return;
+  }
+}
+
+/* -------------------------
+   event wiring (one-time)
+   ------------------------- */
+document.getElementById('reshuffle').addEventListener('click', ()=>{
+  generateWordMagnets();
+  setMessage('New word mix loaded for this round.');
 });
 
-// --- INIT ------------------------------------------------------------------
+openSettingsBtn.addEventListener('click', ()=>{ openSettings(); });
+
+/* -------------------------
+   init
+   ------------------------- */
 function init(){
   buildBigPool();
   scores = loadScores().slice(0,4);
@@ -1923,25 +1260,19 @@ function init(){
   openWizard();
 }
 
-reshuffleBtn.addEventListener('click', ()=>{
-  generateWordMagnets();
-  setMessage('New word mix loaded for this round.');
-});
-
 window.buildBigPool = buildBigPool;
 window.setupBoard = setupBoard;
 
 init();
 
-})();
-</script>
-
-<script>
+/* -------------------------
+   service worker (keep)
+   ------------------------- */
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('service-worker.js')
-    .catch(err => console.log('SW registration failed', err));
+  navigator.serviceWorker.register('service-worker.js').catch(err => console.log('SW registration failed', err));
 }
-</script>
 
+})(); /* IIFE end */
+</script>
 </body>
 </html>
