@@ -457,74 +457,12 @@ function saveScores(arr){ try{ localStorage.setItem(SCORE_KEY, JSON.stringify(ar
 let _allowMagnetRegeneration = false;
 function debugLog(...args){
   // set to false to silence
-  if(window && window.console && window.console.log) console.log('[MM DEBUG]', ...args);
-}
-function regenerateWordPool(){
-  _allowMagnetRegeneration = true;
-  generateWordMagnets(true);
-}
-
-/* -------------------------
-   generateWordMagnets (guarded)
-   ------------------------- */
-function generateWordMagnets(force){
-  if(!force && !_allowMagnetRegeneration){
-    debugLog('generateWordMagnets blocked by guard (not forced).');
-    return;
-  }
-  debugLog('generateWordMagnets running', { time: Date.now(), forced: !!force });
-  // reset guard after explicit regeneration
-  _allowMagnetRegeneration = false;
-
-  wordBank.innerHTML = '';
-  magnets.forEach(m=>{ if(m.el && m.el.parentNode) m.el.parentNode.removeChild(m.el); });
-  magnets = [];
-  magnetId = 1;
-
-  const pool = buildBigPool();
-  const chosen = [];
-
-  for(let w of COMMON_WORDS) chosen.push(w);
-  for(let c of CONNECTORS) if(Math.random() < 0.5) chosen.push(c);
-
-  const things = ["cat","dog","potato","nipple","frog","hammer","guitar","plant","pot","dressing","gown","pizza","glitter","cheese","pants","jumper","kettle","pills","drugs","music","bath","soap","tree","flower","watch","alexa","bleach","car","bus","train","plane"];
-  for(let t of things) if(Math.random() < 0.85) chosen.push(t);
-
-  while(chosen.length < ROUND_WORD_COUNT){
-    const idx = Math.floor(Math.random() * pool.length);
-    chosen.push(pool[idx]);
-  }
-
-  shuffle(chosen);
-
-  const visibleCount = Math.min(VISIBLE_MAGNETS, chosen.length);
-  const bankRect = wordBank.getBoundingClientRect();
-  const bankW = Math.max(600, bankRect.width || 1200);
-  const bankH = Math.max(220, bankRect.height || 320);
-
-  for(let i=0;i<visibleCount;i++){
-    const text = chosen[i];
-    const el = document.createElement('div');
-    el.className='word-magnet';
-    el.innerHTML = `<div class="magnet-text">${escapeHtml(text)}</div>`;
-
-    const angle = Math.round(rand(-6,6));
-    const scale = (rand(0.99,1.01)).toFixed(2);
-    const x = Math.round(rand(8, bankW - 160));
-    const y = Math.round(rand(6, bankH - 48));
-
-    el.style.left = x + 'px';
-    el.style.top = y + 'px';
-    el.style.transform = `rotate(${angle}deg) scale(${scale})`;
-
-    // ensure clicks on the magnet itself don't bubble up
-    el.addEventListener('click', (ev)=>{ ev.stopPropagation(); }, { passive: true });
-
-    wordBank.appendChild(el);
-
-    const magnet = { id:magnetId++, text, el, inPlay:false, x, y, angle, scale };
+     const magnet = { id:magnetId++, text, el, inPlay:false, x, y, angle, scale };
     magnets.push(magnet);
-/* -------------------------
+  } // end for loop
+
+} // end generateWordMagnets()
+
 /* -------------------------
    dragging logic (magnets)
    ------------------------- */
@@ -551,7 +489,6 @@ function makeMagnetDraggable(magnet){
     offsetX = clientX - r.left;
     offsetY = clientY - r.top;
   }
-
 
   function endDrag(){
     dragging = false;
@@ -610,17 +547,15 @@ function makeMagnetDraggable(magnet){
     }
 
     const bankRect = wordBank.getBoundingClientRect();
-if(e.clientX >= bankRect.left && e.clientX <= bankRect.right &&
-   e.clientY >= bankRect.top && e.clientY <= bankRect.bottom){
-  wordBank.classList.add('drag-over');
-} else {
-  wordBank.classList.remove('drag-over');
-}
+    if(e.clientX >= bankRect.left && e.clientX <= bankRect.right &&
+       e.clientY >= bankRect.top && e.clientY <= bankRect.bottom){
+      wordBank.classList.add('drag-over');
+    } else {
+      wordBank.classList.remove('drag-over');
+    }
+  } // end onPointerMove
 
-}  // ← THIS ONE WAS MISSING
-
-function onPointerUp(e){
-
+  function onPointerUp(e){
     if(activePointerId !== null && e.pointerId !== activePointerId) return;
     try { el.releasePointerCapture(e.pointerId); } catch(err){}
 
@@ -657,7 +592,7 @@ function onPointerUp(e){
        centerY >= bankRect.top && centerY <= bankRect.bottom){
 
       const x = Math.round(rand(8, Math.max(80, bankRect.width - 160)));
-      const y = Math.round(rand(6, Math.max(20, bankRect.height - 48)));
+      const y = Math.round(rand(6, Math.max(20, bankRect.height - 48))));
 
       magnet.inPlay = false;
       magnet.x = x;
@@ -672,7 +607,7 @@ function onPointerUp(e){
     }
 
     endDrag();
-  }
+  } // end onPointerUp
 
   /* -------------------------
      TOUCH EVENTS
@@ -769,8 +704,7 @@ function onPointerUp(e){
   window.addEventListener('touchmove', onTouchMove, { passive: false });
   window.addEventListener('touchend', onTouchEnd, { passive: false });
   window.addEventListener('touchcancel', onTouchEnd, { passive: false });
-}
-
+} // end makeMagnetDraggable()
 
 /* -----------------------------
     round flow & ratings
@@ -925,6 +859,8 @@ function openRatingsModal(){
   card.innerHTML = html;
   modal.appendChild(card);
   document.body.appendChild(modal);
+}
+
 
   // visually add player color highlights to rating rows (pre-submit)
   for(let p=0;p<chosenPlayers;p++){
