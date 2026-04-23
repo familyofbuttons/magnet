@@ -1,6 +1,6 @@
 // Service Worker for Magnetic Mayhem (GitHub Pages compatible)
 
-const CACHE_VERSION = 'v10';
+const CACHE_VERSION = 'v11';
 const CACHE_NAME = `magnetic-mayhem-${CACHE_VERSION}`;
 
 // IMPORTANT: All paths must be RELATIVE for GitHub Pages
